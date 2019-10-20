@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>充值</title>
+<link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/css/bootstrap.min.css">
+<script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdn.staticfile.org/popper.js/1.12.5/umd/popper.min.js"></script>
+<script src="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/js/bootstrap.min.js"></script>
+<script src="https://cdn.staticfile.org/vue/2.4.2/vue.min.js"></script>
+<script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>
+<link href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<script src="https://cdn.bootcss.com/layer/2.3/layer.js"></script>
+<script src="https://cdn.bootcss.com/dayjs/1.7.8/dayjs.min.js"></script>
+<script src="https://cdn.bootcss.com/clipboard.js/2.0.4/clipboard.min.js"></script>
+<script src="/js/common/common.js"></script>
+<link href="/css/common/common.css" rel="stylesheet" type="text/css">
+<style type="text/css">
+.pay-type-item {
+	color: #e5e5e5;
+	background-color: #a40000;
+}
+
+.pay-type-item .nav-link:hover {
+	border: unset;
+}
+
+.pay-type-item-active {
+	background-color: #bd2c28;
+	color: #fff;
+	border-bottom: 1px solid #f8f9fa;
+}
+
+.bank-info {
+	margin: 1rem;
+	border: 1px solid red;
+}
+
+.bank-info .card-header {
+	padding: 0.3rem;
+	background-color: unset;
+}
+
+.bank-info .card-body {
+	padding: 0;
+	padding-top: 0.25rem;
+}
+
+.bank-info .row {
+	padding-bottom: 0.25rem;
+	padding-right: 1rem;
+}
+
+.bank-info-item label {
+	text-align: end;
+	width: 5rem;
+	margin-right: 1rem;
+}
+
+.bank-info-item button {
+	float: right;
+}
+
+.please-selected-pay-channel {
+	padding-top: 0.5rem;
+	padding-left: 3rem;
+	padding-bottom: 0.5rem;
+}
+
+.selected-pay-channel {
+	float: right;
+}
+
+.selected-pay-channel i {
+	color: #dc3545;
+	font-size: 1.4rem;
+}
+
+.recharge-form {
+	padding-left: 1rem;
+	padding-right: 1rem;
+	padding-top: 1rem;
+}
+
+.recharge-form .row {
+	padding-bottom: 0.5rem;
+}
+
+.recharge-form-item label {
+	text-align: end;
+	width: 5rem;
+	margin-right: 1rem;
+}
+
+.recharge-form-item input {
+	border: 0;
+	outline: none;
+	border-bottom: 1px solid #35a79c;
+	min-width: 12rem;
+}
+
+.recharge-form-item select {
+	border: 0;
+	outline: none;
+	border-bottom: 1px solid #35a79c;
+	min-width: 12rem;
+}
+
+.quick-input-amount {
+	display: inline-block;
+	text-align: center;
+	border-radius: 6px;
+	background: #fffaf7;
+	border: 2px solid #ffecdf;
+	color: #e4393c;
+	width: 4rem;
+	height: 2rem;
+	line-height: 2rem;
+	margin-right: 0.7rem;
+	border-radius: 0.6rem;
+	margin-bottom: 0.4rem;
+}
+</style>
+</head>
+
+<body>
+	<div th:replace="common/header::html"></div>
+	<div id="recharge" v-cloak>
+		<div class="page-body">
+			<ul class="nav nav-tabs nav-justified">
+				<li class="nav-item pay-type-item" v-for="payType in payTypes" v-bind:class="{'pay-type-item-active': selectedPayType.type == payType.type}" v-on:click="switchPayType(payType)"><a class="nav-link">{{payType.name}}</a></li>
+			</ul>
+			<div class="recharge-form" v-show="selectedPayType.bankCardFlag">
+				<div class="row">
+					<div class="col-sm-9 offset-sm-3 recharge-form-item">
+						<label>选择银行</label> <span><select v-model="selectedPayChannel">
+								<option value="">请选择</option>
+								<option v-for="payChannel in payChannels" :value="payChannel" v-show="selectedPayType.id == payChannel.payTypeId">{{payChannel.bankName + '-' + payChannel.accountHolder}}</option>
+						</select></span>
+					</div>
+				</div>
+			</div>
+			<div class="card bank-info" v-show="selectedPayType.bankCardFlag && (selectedPayChannel != null && selectedPayChannel != '')">
+				<div class="card-header">{{selectedPayChannel.bankName}}</div>
+				<div class="card-body">
+					<div class="row">
+						<div class="col-sm-9 offset-sm-3 bank-info-item">
+							<label>收款人:</label> <span>{{selectedPayChannel.accountHolder}}</span>
+							<button type="button" class="btn btn-sm btn-danger copy-btn" :data-clipboard-text="selectedPayChannel.accountHolder">复制</button>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-9 offset-sm-3 bank-info-item">
+							<label>卡号:</label> <span>{{selectedPayChannel.bankCardAccount}}</span>
+							<button type="button" class="btn btn-sm btn-danger copy-btn" :data-clipboard-text="selectedPayChannel.bankCardAccount">复制</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div v-show="!selectedPayType.bankCardFlag">
+				<div class="please-selected-pay-channel">请选择充值通道</div>
+				<ul class="list-group">
+					<li class="list-group-item" v-for="payChannel in payChannels" v-show="selectedPayType.id == payChannel.payTypeId" v-on:click="selectedPayChannel = payChannel">{{payChannel.channelName}}<span class="selected-pay-channel" v-show="selectedPayChannel == payChannel"><i class="fa fa-check-circle" aria-hidden="true"></i></span></li>
+				</ul>
+			</div>
+			<div class="recharge-form">
+				<div v-show="selectedPayType.bankCardFlag">
+					<div class="row" style="padding-left: 3rem; color: red; font-weight: bold;">
+						<div class="col-sm-12">请依银行资料存款后再填写以下信息</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-9 offset-sm-3 recharge-form-item">
+							<label>存款日期</label> <span><input type="date" v-model="depositDate"></span>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-9 offset-sm-3 recharge-form-item">
+							<label>存款时间</label> <span><input type="time" v-model="depositTime"></span>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-9 offset-sm-3 recharge-form-item">
+							<label>存款人姓名</label> <span><input type="text" v-model="depositor"></span>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-sm-9 offset-sm-3 recharge-form-item">
+						<label>充值金额</label> <span><input type="number" v-model="rechargeAmount"></span>元
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-sm-9 offset-sm-3 recharge-form-item">
+						<div class="quick-input-amount" v-for="amount in quickInputAmount.split(',')" v-on:click="rechargeAmount = amount">{{amount}}</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-sm-9 offset-sm-3">
+						<div class="alert alert-light" style="font-size: 14px; padding-top: 0; padding-bottom: 0;">{{rechargeExplain}}</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-sm-12">
+						<button type="button" class="btn btn-success btn-lg btn-block" v-on:click="confirmSubmit">确认提交</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript" src="/js/recharge.js"></script>
+</body>
+</html>

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8">
+<title>申诉记录</title>
+<link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/css/bootstrap.min.css">
+<script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdn.staticfile.org/popper.js/1.12.5/umd/popper.min.js"></script>
+<script src="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/js/bootstrap.min.js"></script>
+<script src="https://cdn.staticfile.org/vue/2.4.2/vue.min.js"></script>
+<script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>
+<script src="https://cdn.bootcss.com/dayjs/1.7.8/dayjs.min.js"></script>
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.13.1/bootstrap-table.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.13.1/bootstrap-table.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.13.1/locale/bootstrap-table-zh-CN.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-fileinput/5.0.1/css/fileinput.min.css" media="all" rel="stylesheet" type="text/css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-fileinput/5.0.1/js/fileinput.min.js"></script>
+<link href="https://cdn.bootcss.com/viewerjs/1.3.3/viewer.min.css" rel="stylesheet">
+<script src="https://cdn.bootcss.com/viewerjs/1.3.3/viewer.min.js"></script>
+<link href="/css/common/common.css" rel="stylesheet" type="text/css">
+<style type="text/css">
+.common-query-cond-form {
+	padding-top: 2px;
+	padding-bottom: 2px;
+}
+
+.appeal-details-container {
+	padding-right: 44px;
+	padding-left: 44px;
+	padding-top: 15px;
+}
+
+.back-action {
+	float: right;
+}
+
+.appeal-details-row {
+	padding-bottom: 20px;
+}
+
+.appeal-details-title {
+	text-align: center;
+	font-weight: bold;
+	font-size: 22px;
+	padding-bottom: 10px;
+}
+
+.appeal-details-item {
+	font-size: 18px;
+}
+
+.appeal-details-item-highlight {
+	color: #ef061e;
+}
+
+.appeal-details-item label {
+	padding-right: 20px;
+	color: #757b82;
+}
+
+.appeal-details-item span {
+	
+}
+
+.appeal-details-action {
+	text-align: center;
+	padding-top: 10px;
+}
+
+.appeal-details-action button {
+	margin-right: 30px;
+}
+
+.no-supplied-sreenshot {
+	text-align: center;
+	height: 200px;
+	line-height: 200px;
+	font-weight: bold;
+	color: red;
+}
+
+.sreenshot {
+	background-color: #fff;
+	width: 50%;
+	height: 200px;
+	padding-right: 5px;
+	float: left !important;
+	cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+	<div th:replace="common/header::html"></div>
+	<div id="appeal-record" v-cloak>
+		<div v-show="showAppealRecordFlag">
+			<form class="form-inline common-query-cond-form">
+				<div class="form-group common-query-cond">
+					<label>订单号:</label><input type="text" class="form-control-sm" v-model="orderNo">
+				</div>
+				<div class="form-group common-query-cond">
+					<label>收款渠道:</label> <select class="form-control-sm" v-model="gatheringChannelCode">
+						<option value="">请选择</option>
+						<option v-for="dictItem in gatheringChannelDictItems" :value="dictItem.dictItemCode">{{dictItem.dictItemName}}</option>
+					</select>
+				</div>
+				<div class="form-group common-query-cond">
+					<label>接单人:</label> <input type="text" class="form-control-sm" v-model="receiverUserName">
+				</div>
+				<div class="form-group common-query-cond">
+					<label>申诉类型:</label> <select class="form-control-sm" v-model="appealType">
+						<option value="">请选择</option>
+						<option v-for="dictItem in appealTypeDictItems" :value="dictItem.dictItemCode">{{dictItem.dictItemName}}</option>
+					</select>
+				</div>
+			</form>
+			<form class="form-inline common-query-cond-form">
+				<div class="form-group common-query-cond">
+					<label>发起方:</label> <select class="form-control-sm" v-model="initiatorObj">
+						<option value="">请选择</option>
+						<option v-for="dictItem in initiatorObjDictItems" :value="dictItem.dictItemCode">{{dictItem.dictItemName}}</option>
+					</select>
+				</div>
+				<div class="form-group common-query-cond">
+					<label>状态:</label> <select class="form-control-sm" v-model="appealState">
+						<option value="">请选择</option>
+						<option v-for="dictItem in appealStateDictItems" :value="dictItem.dictItemCode">{{dictItem.dictItemName}}</option>
+					</select>
+				</div>
+				<div class="form-group common-query-cond">
+					<label>处理方式:</label> <select class="form-control-sm" v-model="appealProcessWay">
+						<option value="">请选择</option>
+						<option v-for="dictItem in appealProcessWayDictItems" :value="dictItem.dictItemCode">{{dictItem.dictItemName}}</option>
+					</select>
+				</div>
+				<div class="form-group common-query-cond">
+					<label>发起时间:</label><input type="date" class="form-control-sm" v-model="initiationStartTime"><span>到</span><input type="date" class="form-control-sm" v-model="initiationEndTime">
+				</div>
+				<button type="button" class="btn btn-danger btn-sm" v-on:click="refreshTable">搜索</button>
+			</form>
+			<table class="common-table appeal-record-table"></table>
+		</div>
+		<div class="appeal-details-container" v-show="!showAppealRecordFlag">
+			<div class="back-action">
+				<button type="button" class="btn light btn-lg" v-on:click="showAppealRecordPage">返回</button>
+			</div>
+			<div class="appeal-details-title">申诉详情</div>
+			<div class="row appeal-details-row">
+				<div class="col-sm-4 appeal-details-item">
+					<label>订单号:</label><span>{{selectAppeal.orderNo}}</span>
+				</div>
+				<div class="col-sm-4 appeal-details-item">
+					<label>收款渠道/收款金额:</label><span>{{selectAppeal.gatheringChannelName + '/' + selectAppeal.gatheringAmount}}元</span>
+				</div>
+				<div class="col-sm-4 appeal-details-item">
+					<label>接单人/接单时间:</label><span>{{selectAppeal.receiverUserName + '/' + selectAppeal.receivedTime}}</span>
+				</div>
+			</div>
+			<div class="row appeal-details-row">
+				<div class="col-sm-4 appeal-details-item">
+					<label>申诉类型:</label><span class="appeal-details-item-highlight">{{selectAppeal.appealTypeName}}</span>
+				</div>
+				<div class="col-sm-4 appeal-details-item">
+					<label>发起方:</label><span>{{selectAppeal.initiatorObjName}}</span>
+				</div>
+				<div class="col-sm-4 appeal-details-item">
+					<label>状态:</label><span class="appeal-details-item-highlight">{{selectAppeal.stateName}}</span>
+				</div>
+			</div>
+			<div class="row appeal-details-row">
+				<div class="col-sm-4 appeal-details-item">
+					<label>发起时间:</label><span>{{selectAppeal.initiationTime}}</span>
+				</div>
+				<div class="col-sm-4 appeal-details-item" v-show="selectAppeal.state == '2'">
+					<label>处理方式:</label><span class="appeal-details-item-highlight">{{selectAppeal.processWayName}}</span>
+				</div>
+				<div class="col-sm-4 appeal-details-item" v-show="selectAppeal.appealType == '2' && selectAppeal.state == '1'">
+					<label>{{selectAppeal.initiatorObj == 'user' ? '用户反映实际支付金额:' : '商户反映实际支付的金额:'}}</label><span class="appeal-details-item-highlight">{{selectAppeal.actualPayAmount}}元</span>
+				</div>
+			</div>
+			<div class="row" v-show="selectAppeal.appealType == '1' && selectAppeal.initiatorObj == 'user'">
+				<div class="col-sm-6">
+					<div class="card">
+						<div class="card-header">
+							<span>商户的截图</span><span class="float-right" style="color: #007bff; font-weight: bold; cursor: pointer;" v-show="selectAppeal.state == '1' && (selectAppeal.merchantSreenshotIds == null || selectAppeal.merchantSreenshotIds.length == 0)" v-on:click="showUploadPicModal">立即上传</span>
+						</div>
+						<div class="card-body">
+							<div class="no-supplied-sreenshot" v-show="selectAppeal.merchantSreenshotIds == null || selectAppeal.merchantSreenshotIds.length == 0">未提供截图</div>
+							<div v-show="selectAppeal.merchantSreenshotIds != null && selectAppeal.merchantSreenshotIds.length > 0">
+								<img class="sreenshot" v-for="sreenshotId in selectAppeal.merchantSreenshotIds" :src="'/storage/fetch/' + sreenshotId" v-on:click="viewImage('/storage/fetch/' + sreenshotId)">
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row" v-show="selectAppeal.appealType == '2'">
+				<div class="col-sm-6">
+					<div class="card">
+						<div class="card-header">
+							<span>用户的截图</span>
+						</div>
+						<div class="card-body">
+							<div class="no-supplied-sreenshot" v-show="selectAppeal.userSreenshotIds == null || selectAppeal.userSreenshotIds.length == 0">未提供截图</div>
+							<div v-show="selectAppeal.userSreenshotIds != null && selectAppeal.userSreenshotIds.length > 0">
+								<img class="sreenshot" v-for="sreenshotId in selectAppeal.userSreenshotIds" :src="'/storage/fetch/' + sreenshotId" v-on:click="viewImage('/storage/fetch/' + sreenshotId)">
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-sm-6">
+					<div class="card">
+						<div class="card-header">
+							<span>商户的截图</span><span class="float-right" style="color: #007bff; font-weight: bold; cursor: pointer;" v-show="selectAppeal.state == '1' && (selectAppeal.merchantSreenshotIds == null || selectAppeal.merchantSreenshotIds.length == 0)" v-on:click="showUploadPicModal">立即上传</span>
+						</div>
+						<div class="card-body">
+							<div class="no-supplied-sreenshot" v-show="selectAppeal.merchantSreenshotIds == null || selectAppeal.merchantSreenshotIds.length == 0">未提供截图</div>
+							<div v-show="selectAppeal.merchantSreenshotIds != null && selectAppeal.merchantSreenshotIds.length > 0">
+								<img class="sreenshot" v-for="sreenshotId in selectAppeal.merchantSreenshotIds" :src="'/storage/fetch/' + sreenshotId" v-on:click="viewImage('/storage/fetch/' + sreenshotId)">
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row" v-show="selectAppeal.appealType == '3'">
+				<div class="col-sm-6">
+					<div class="card">
+						<div class="card-header">
+							<span>商户的截图</span>
+						</div>
+						<div class="card-body">
+							<div class="no-supplied-sreenshot" v-show="selectAppeal.state == '1' && (selectAppeal.merchantSreenshotIds == null || selectAppeal.merchantSreenshotIds.length == 0)">未提供截图</div>
+							<div v-show="selectAppeal.merchantSreenshotIds != null && selectAppeal.merchantSreenshotIds.length > 0">
+								<img class="sreenshot" v-for="sreenshotId in selectAppeal.merchantSreenshotIds" :src="'/storage/fetch/' + sreenshotId" v-on:click="viewImage('/storage/fetch/' + sreenshotId)">
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-sm-6">
+					<div class="card">
+						<div class="card-header">
+							<span>用户的截图</span>
+						</div>
+						<div class="card-body">
+							<div class="no-supplied-sreenshot" v-show="selectAppeal.userSreenshotIds == null || selectAppeal.userSreenshotIds.length == 0">未提供截图</div>
+							<div v-show="selectAppeal.userSreenshotIds != null && selectAppeal.userSreenshotIds.length > 0">
+								<img class="sreenshot" v-for="sreenshotId in selectAppeal.userSreenshotIds" :src="'/storage/fetch/' + sreenshotId" v-on:click="viewImage('/storage/fetch/' + sreenshotId)">
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="appeal-details-action">
+				<button type="button" class="btn btn-danger btn-lg" v-show="selectAppeal.state == '1' && selectAppeal.initiatorObj == 'merchant' && (selectAppeal.userSreenshotIds == null || selectAppeal.userSreenshotIds.length == 0)" v-on:click="merchantCancelAppeal(selectAppeal.id)">撤销申诉</button>
+			</div>
+		</div>
+
+		<div v-show="showUploadPicModalFlag">
+			<div class="modal-mask">
+				<div class="modal-wrapper">
+					<div class="modal-dialog">
+						<div class="modal-content" style="width: 600px;">
+							<div class="modal-header">
+								<h5 class="modal-title">上传截图</h5>
+								<button type="button" class="close" data-dismiss="modal" aria-label="Close" v-on:click="showUploadPicModalFlag = false;">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+							<div class="modal-body">
+								<form>
+									<div class="form-group row">
+										<div class="col-sm-12">
+											<label></label> <input type="file" class="form-control upload-sreenshot" multiple>
+										</div>
+									</div>
+								</form>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-success btn-sm" v-on:click="uploadSreenshot">上传</button>
+								<button type="button" class="btn btn-sm" v-on:click="showUploadPicModalFlag = false;">取消</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script src="/js/appeal-record.js"></script>
+</body>
+</html>

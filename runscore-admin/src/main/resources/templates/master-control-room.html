@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8">
+<title>总控室</title>
+<link href="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script src="https://cdn.staticfile.org/vue/2.4.2/vue.min.js"></script>
+<script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>
+<link href="https://cdn.bootcss.com/bootstrap-fileinput/5.0.1/css/fileinput.min.css" rel="stylesheet">
+<script src="https://cdn.bootcss.com/bootstrap-fileinput/5.0.1/js/fileinput.min.js"></script>
+<link href="/css/common/common.css" rel="stylesheet" type="text/css">
+<style type="text/css">
+.master-control-room-row {
+	margin-left: 0;
+	margin-right: 0;
+	padding-top: 10px;
+}
+
+.master-control-room-row .card-body {
+	height: 230px;
+	padding-left: 2.25rem;
+}
+
+.master-control-room-input {
+	text-align: right;
+	width: 40%;
+}
+
+.customer-qrcode-div {
+	height: 120px;
+}
+
+.customer-qrcode {
+	background-color: #fff;
+	width: 50%;
+	height: 120px;
+	padding-right: 5px;
+	float: left !important;
+	cursor: pointer;
+}
+
+.no-supplied-customer-qrcode {
+	text-align: center;
+	height: 120px;
+	line-height: 120px;
+	font-weight: bold;
+	color: red;
+}
+
+.kv-file-content {
+	width: 100% !important;
+}
+
+.view-gathering-code-dialog .modal-content {
+	width: 80%;
+}
+</style>
+</head>
+<body>
+	<div th:replace="common/header::html"></div>
+	<div id="master-control-room" v-cloak>
+		<div class="row master-control-room-row">
+			<div class="col-sm-4">
+				<div class="card">
+					<div class="card-header">系统设置</div>
+					<div class="card-body">
+						<div class="row">
+							<div class="col-sm-12">
+								<label>网站标题</label> <span><input type="text" class="form-control-sm master-control-room-input" v-model="websiteTitle"></span>
+							</div>
+						</div>
+						<button type="button" class="btn btn-success btn-sm" v-on:click="updateSystemSetting">更新</button>
+					</div>
+				</div>
+			</div>
+			<div class="col-sm-4">
+				<div class="card">
+					<div class="card-header">注册设置</div>
+					<div class="card-body">
+						<div class="row">
+							<div class="col-sm-12">
+								<label>&nbsp;</label> <span>
+									<div class="custom-control custom-switch custom-control-inline">
+										<input type="checkbox" class="custom-control-input" id="registerEnabled" v-model="registerEnabled"> <label class="custom-control-label" for="registerEnabled">开放注册功能</label>
+									</div>
+								</span>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-sm-12">
+								<label>注册默认返点</label> <span><input type="text" class="form-control-sm master-control-room-input" v-model="regitserDefaultRebate">%</span>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-sm-12">
+								<label>&nbsp;</label> <span>
+									<div class="custom-control custom-switch custom-control-inline">
+										<input type="checkbox" class="custom-control-input" id="inviteRegisterEnabled" v-model="inviteRegisterEnabled"> <label class="custom-control-label" for="inviteRegisterEnabled">启用邀请码注册模式</label>
+									</div>
+								</span>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-sm-12">
+								<label>邀请码有效时长</label> <span><input type="text" class="form-control-sm master-control-room-input" v-model="inviteCodeEffectiveDuration">天</span>
+							</div>
+						</div>
+						<button type="button" class="btn btn-success btn-sm" v-on:click="updateRegisterSetting">更新</button>
+					</div>
+				</div>
+			</div>
+			<div class="col-sm-4">
+				<div class="card">
+					<div class="card-header">接单设置</div>
+					<div class="card-body">
+						<div class="row">
+							<div class="col-sm-12">
+								<label>接单有效时长</label> <span><input type="text" class="form-control-sm master-control-room-input" v-model="receiveOrderEffectiveDuration">分钟</span>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-sm-12">
+								<label>支付有效时长</label> <span><input type="text" class="form-control-sm master-control-room-input" v-model="orderPayEffectiveDuration">分钟</span>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-sm-12">
+								<label>接单数量上限</label> <span><input type="text" class="form-control-sm master-control-room-input" v-model="receiveOrderUpperLimit">单</span>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-sm-12">
+								<label>保证金最低要求</label> <span><input type="text" class="form-control-sm master-control-room-input" v-model="cashDepositMinimumRequire">元</span>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-sm-12">
+								<div class="custom-control custom-switch custom-control-inline">
+									<input type="checkbox" class="custom-control-input" id="unfixedGatheringCodeReceiveOrder" v-model="unfixedGatheringCodeReceiveOrder"> <label class="custom-control-label" for="unfixedGatheringCodeReceiveOrder">支持不固定金额收款码接单</label>
+								</div>
+							</div>
+						</div>
+						<button type="button" class="btn btn-success btn-sm" v-on:click="updateReceiveOrderSetting">更新</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="row master-control-room-row">
+			<div class="col-sm-4">
+				<div class="card">
+					<div class="card-header">充值</div>
+					<div class="card-body">
+						<div class="row">
+							<div class="col-sm-12">
+								<label>充值订单有效时长</label> <span><input type="text" class="form-control-sm master-control-room-input" v-model="rechargeOrderEffectiveDuration">分钟</span>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-sm-12">
+								<label>充值返水率</label> <span><input type="text" class="form-control-sm master-control-room-input" v-model="rechargeReturnWaterRate">%</span>
+								<div class="custom-control custom-switch custom-control-inline">
+									<input type="checkbox" class="custom-control-input" id="rechargeReturnWaterRateEnabled" v-model="rechargeReturnWaterRateEnabled"> <label class="custom-control-label" for="rechargeReturnWaterRateEnabled">{{rechargeReturnWaterRateEnabled ? '启用' : '关闭'}}</label>
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-sm-12">
+								<label>快捷录入金额</label> <span><input type="text" class="form-control-sm master-control-room-input" style="width: 70%;" v-model="quickInputAmount"></span>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-sm-12">
+								<label>充值说明</label> <span><input type="text" class="form-control-sm master-control-room-input" style="width: 70%;" v-model="rechargeExplain"></span>
+							</div>
+						</div>
+						<button type="button" class="btn btn-success btn-sm" v-on:click="updateRechargeSetting">更新</button>
+					</div>
+				</div>
+			</div>
+			<div class="col-sm-4">
+				<div class="card">
+					<div class="card-header">客服二维码</div>
+					<div class="card-body">
+						<div class="customer-qrcode-div">
+							<div class="no-supplied-customer-qrcode" v-show="qrcodeStorageIds.length == 0">未上传二维码</div>
+							<img class="customer-qrcode" v-for="qrcodeStorageId in qrcodeStorageIds" :src="'/storage/fetch/' + qrcodeStorageId">
+						</div>
+						<button type="button" class="btn btn-success btn-sm" style="margin-top: 10px;" v-on:click="showUploadQrcodeModal">{{qrcodeStorageIds.length == 0 ? '立即上传' : '重新上传'}}</button>
+					</div>
+				</div>
+			</div>
+			<div class="col-sm-4">
+				<div class="card">
+					<div class="card-header">刷新缓存</div>
+					<div class="card-body">
+						<div class="row">
+							<div class="col-sm-12">
+								<label>缓存</label> <span>
+									<div class="custom-control custom-checkbox custom-control-inline">
+										<input type="checkbox" class="custom-control-input" id="cacheConfigItem" v-model="refreshConfigItem"> <label class="custom-control-label" for="cacheConfigItem">配置项</label>
+									</div>
+									<div class="custom-control custom-checkbox custom-control-inline">
+										<input type="checkbox" class="custom-control-input" id="cacheDict" v-model="refreshDict"> <label class="custom-control-label" for="cacheDict">字典数据</label>
+									</div>
+								</span>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-sm-12">
+								<label style="color: red;">*</label><span>勾选要刷新的缓存数据</span>
+							</div>
+						</div>
+						<button type="button" class="btn btn-success btn-sm" v-on:click="refreshCache">刷新缓存</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div v-show="uploadQrcodeFlag">
+			<div class="modal-mask">
+				<div class="modal-wrapper">
+					<div class="modal-dialog">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title">上传客服二维码</h5>
+								<button type="button" class="close" data-dismiss="modal" aria-label="Close" v-on:click="uploadQrcodeFlag = false">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+							<div class="modal-body" style="height: 320px; overflow: auto;">
+								<form>
+									<div class="form-group row">
+										<div class="col-sm-12">
+											<input type="file" class="form-control qrcode-pic" multiple>
+										</div>
+									</div>
+								</form>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-success btn-sm" v-on:click="uploadQrcode">保存</button>
+								<button type="button" class="btn btn-sm" v-on:click="uploadQrcodeFlag = false">取消</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script src="/js/master-control-room.js"></script>
+</body>
+</html>

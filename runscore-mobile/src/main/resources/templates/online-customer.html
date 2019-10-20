@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>在线客服</title>
+<link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/css/bootstrap.min.css">
+<script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdn.staticfile.org/popper.js/1.12.5/umd/popper.min.js"></script>
+<script src="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/js/bootstrap.min.js"></script>
+<script src="https://cdn.staticfile.org/vue/2.4.2/vue.min.js"></script>
+<script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>
+<link href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<script src="https://cdn.bootcss.com/layer/2.3/layer.js"></script>
+<script src="/js/common/common.js"></script>
+<link href="/css/common/common.css" rel="stylesheet" type="text/css">
+<style type="text/css">
+.customer-tip {
+	padding-top: 3rem;
+	text-align: center;
+	padding-bottom: 3rem;
+}
+
+.qrcode {
+	text-align: center;
+	padding-bottom: 2rem;
+}
+
+.qrcode img {
+	width: 85%;
+	height: 12rem;
+}
+</style>
+</head>
+
+<body>
+	<div th:replace="common/header::html"></div>
+	<div id="onlineCustomer" v-cloak>
+		<div class="page-body">
+			<div class="customer-tip">扫描以下二维码,添加客服的微信</div>
+			<div class="qrcode" v-for="storageId in qrcodeStorageIds">
+				<img :src="'/storage/fetch/' + storageId">
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">
+		var onlineCustomerVM = new Vue({
+			el : '#onlineCustomer',
+			data : {
+				qrcodeStorageIds : [],
+			},
+			computed : {},
+			created : function() {
+			},
+			mounted : function() {
+				headerVM.title = '在线客服';
+				headerVM.showBackFlag = true;
+				this.loadCustomerQrcode();
+			},
+			methods : {
+
+				loadCustomerQrcode : function() {
+					var that = this;
+					that.$http.get('/masterControl/getCustomerQrcodeSetting').then(function(res) {
+						if (res.body.data != null) {
+							that.qrcodeStorageIds = res.body.data.qrcodeStorageIds.split(',');
+						} else {
+							that.qrcodeStorageIds = [];
+						}
+					});
+				}
+			}
+		});
+	</script>
+</body>
+</html>

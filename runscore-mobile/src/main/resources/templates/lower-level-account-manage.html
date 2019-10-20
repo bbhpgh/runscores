@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>下级账号管理</title>
+<link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/css/bootstrap.min.css">
+<script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdn.staticfile.org/popper.js/1.12.5/umd/popper.min.js"></script>
+<script src="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/js/bootstrap.min.js"></script>
+<script src="https://cdn.staticfile.org/vue/2.4.2/vue.min.js"></script>
+<script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>
+<script src="/js/common/common.js"></script>
+<link href="/css/common/common.css" rel="stylesheet" type="text/css">
+<style type="text/css">
+.form-details-item label {
+	width: 7rem;
+}
+</style>
+</head>
+
+<body>
+	<div th:replace="common/header::html"></div>
+	<div id="lowerLevelAccountManage" v-cloak>
+		<div class="page-body" style="background: #f2f2f2;">
+			<div class="input-group" style="padding-bottom: 0.3rem; padding-top: 0.3rem;">
+				<select class="form-control" style="width: 10rem; height: 3rem;" v-model="queryScope">
+					<option v-for="dictItem in queryScopeDictItems" :value="dictItem.dictItemCode">{{dictItem.dictItemName}}</option>
+				</select> <input type="text" class="form-control" style="width: 8rem;" v-model="userName" placeholder="用户名">
+				<div class="input-group-append">
+					<button class="btn btn-outline-secondary" type="button" v-on:click="query">查询</button>
+				</div>
+			</div>
+			<div class="form-details" v-for="account in accounts">
+				<div class="form-details-body">
+					<div class="form-details-item">
+						<label>用户名:</label> <span>{{account.userName}}</span><label class="form-details-item-highlight">{{accountTypeFormat(account)}}</label>
+					</div>
+					<div class="form-details-item">
+						<label>保证金:</label> <span class="form-details-item-highlight">{{account.cashDeposit}}</span><label>返点{{account.rebate}}%</label>
+					</div>
+					<div class="form-details-item">
+						<label>注册时间:</label> <span>{{account.registeredTime}}</span>
+					</div>
+					<div class="form-details-item">
+						<label>最近登录时间:</label> <span>{{account.latelyLoginTime}}</span>
+					</div>
+				</div>
+			</div>
+			<div style="padding-left: 13rem;">
+				<ul class="pagination">
+					<li class="page-item"><a class="page-link" v-show="totalPage > 0 && pageNum > 1" v-on:click="prePage">上一页</a></li>
+					<li class="page-item"><a class="page-link" v-show="pageNum >= 1 && pageNum < totalPage" v-on:click="nextPage">下一页</a></li>
+				</ul>
+			</div>
+
+		</div>
+	</div>
+	<div th:replace="common/footer::html"></div>
+	<script type="text/javascript">
+		var lowerLevelAccountManageVM = new Vue({
+			el : '#lowerLevelAccountManage',
+			data : {
+				queryScope : '20',
+				queryScopeDictItems : [ {
+					dictItemCode : '20',
+					dictItemName : '指定账号及直接下级'
+				}, {
+					dictItemCode : '10',
+					dictItemName : '所有账号'
+				} ],
+				userName : '',
+				accounts : [],
+				pageNum : 1,
+				totalPage : 1
+			},
+			computed : {},
+			created : function() {
+			},
+			mounted : function() {
+				headerVM.title = '下级账号管理';
+				headerVM.showBackFlag = true;
+				this.loadByPage();
+			},
+			methods : {
+				accountTypeFormat : function(account) {
+					if (account.accountType == 'admin') {
+						return account.accountTypeName;
+					}
+					return account.accountLevel + '级' + account.accountTypeName;
+				},
+				query : function() {
+					this.pageNum = 1;
+					this.loadByPage();
+				},
+
+				prePage : function() {
+					this.pageNum = this.pageNum - 1;
+					this.loadByPage();
+				},
+
+				nextPage : function() {
+					this.pageNum = this.pageNum + 1;
+					this.loadByPage();
+				},
+
+				loadByPage : function() {
+					var that = this;
+					that.$http.get('/agent/findLowerLevelAccountDetailsInfoByPage', {
+						params : {
+							pageSize : 5,
+							pageNum : that.pageNum,
+							queryScope : that.queryScope,
+							userName : that.userName
+						}
+					}).then(function(res) {
+						that.accounts = res.body.data.content;
+						that.pageNum = res.body.data.pageNum;
+						that.totalPage = res.body.data.totalPage;
+					});
+				}
+			}
+		});
+	</script>
+</body>
+</html>

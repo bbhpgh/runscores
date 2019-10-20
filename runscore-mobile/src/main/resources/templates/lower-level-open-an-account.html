@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>下级开户</title>
+<link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/css/bootstrap.min.css">
+<script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdn.staticfile.org/popper.js/1.12.5/umd/popper.min.js"></script>
+<script src="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/js/bootstrap.min.js"></script>
+<script src="https://cdn.staticfile.org/vue/2.4.2/vue.min.js"></script>
+<script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>
+<link href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<script src="https://cdn.bootcss.com/layer/2.3/layer.js"></script>
+<script src="https://cdn.bootcss.com/clipboard.js/2.0.4/clipboard.min.js"></script>
+<link href="/css/common/common.css" rel="stylesheet" type="text/css">
+<script src="/js/common/common.js"></script>
+<style type="text/css">
+.login-container {
+	padding-top: 2rem;
+}
+
+.login-btn {
+	margin-bottom: 1rem;
+}
+
+.lower-level-open-an-account-tip {
+	background: #fffaf7;
+	border: 1px solid #ffecdf;
+	padding: 1.5rem;
+}
+</style>
+</head>
+
+<body>
+	<div th:replace="common/header::html"></div>
+	<div id="login" v-cloak>
+		<div class="page-body">
+			<div class="container login-container">
+				<form>
+					<div class="form-group">
+						<label>开户类型</label>
+						<div>
+							<div class="custom-control custom-radio custom-control-inline">
+								<input type="radio" class="custom-control-input" id="accountTypeMember" value="member" v-model="accountType"> <label class="custom-control-label" for="accountTypeMember">会员</label>
+							</div>
+							<div class="custom-control custom-radio custom-control-inline">
+								<input type="radio" class="custom-control-input" id="accountTypeAgent" value="agent" v-model="accountType"> <label class="custom-control-label" for="accountTypeAgent">代理</label>
+							</div>
+						</div>
+					</div>
+					<div class="form-group">
+						<label>返点</label> <select class="form-control" v-model="rebate">
+							<option value="">请选择</option>
+							<option v-for="dictItem in rebateDictItems" :value="dictItem.rebate" v-show="dictItem.rebate <= accountRebate">{{dictItem.rebate}}%</option>
+						</select>
+					</div>
+					<div class="form-group" v-show="inviteRegisterLink != null">
+						<label>邀请注册链接</label>
+						<div>
+							<span>{{inviteRegisterLink}}</span>
+							<button id="copyInviteRegisterLinkBtn" type="button" class="btn" :data-clipboard-text="inviteRegisterLink">复制</button>
+						</div>
+					</div>
+					<button type="button" class="btn btn-danger btn-lg btn-block login-btn" v-on:click="generateRegiterLink">生成链接</button>
+					<button type="button" class="btn btn-light btn-lg btn-block login-btn" v-on:click="window.history.back(-1);">返回</button>
+				</form>
+				<div class="card" style="margin-bottom: 1rem;">
+					<div class="card-body lower-level-open-an-account-tip">
+						<div class="row">※ 温馨提示：</div>
+						<div class="row">2、代理可获得的佣金等于代理自身返点与下级返点的差值，如自身返点1.8%，下级返点1.5%，您将能获得下级投注返点：1.8%-1.5%=0.3%，如下级接单10000元，您将会获得奖励金返点30元。</div>
+						<div class="row">3、下级返点值设得越低，您的返点就越高，建议给下级设置的返点不要过低。</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div th:replace="common/footer::html"></div>
+	<script type="text/javascript">
+		var loginVM = new Vue({
+			el : '#login',
+			data : {
+				accountType : '',
+				rebate : '',
+				rebateDictItems : [],
+				inviteRegisterLink : null,
+			},
+			computed : {},
+			created : function() {
+			},
+			mounted : function() {
+				headerVM.title = '代理开户';
+				headerVM.showBackFlag = true;
+				this.getUserAccountInfo();
+				this.loadrebateDictItem();
+
+				var clipboard = new ClipboardJS('#copyInviteRegisterLinkBtn');
+				clipboard.on('success', function(e) {
+					layer.alert('复制成功!', {
+						icon : 1,
+						time : 3000,
+						shade : false
+					});
+				});
+			},
+			methods : {
+
+				/**
+				 * 获取用户账号信息
+				 */
+				getUserAccountInfo : function() {
+					var that = this;
+					that.$http.get('/userAccount/getUserAccountInfo').then(function(res) {
+						if (res.body.data != null) {
+							that.accountRebate = res.body.data.rebate;
+						}
+					});
+				},
+
+				loadrebateDictItem : function() {
+					var that = this;
+					that.$http.get('/agent/findAllRebate').then(function(res) {
+						this.rebateDictItems = res.body.data;
+					});
+				},
+
+				generateRegiterLink : function() {
+					var that = this;
+					if (that.accountType == null || that.accountType == '') {
+						layer.alert('请选择开户类型', {
+							title : '提示',
+							icon : 7,
+							time : 3000
+						});
+						return;
+					}
+					if (that.rebate == null || that.rebate == '') {
+						layer.alert('请选择返点', {
+							title : '提示',
+							icon : 7,
+							time : 3000
+						});
+						return;
+					}
+					that.$http.post('/agent/generateInviteCodeAndGetInviteRegisterLink', {
+						accountType : that.accountType,
+						rebate : that.rebate
+					}).then(function(res) {
+						layer.alert('操作成功!', {
+							icon : 1,
+							time : 3000,
+							shade : false
+						});
+						that.inviteRegisterLink = res.body.data.inviteRegisterLink;
+					});
+				}
+			}
+		});
+	</script>
+</body>
+</html>

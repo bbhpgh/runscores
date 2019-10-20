@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>个人充提</title>
+<link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/css/bootstrap.min.css">
+<script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdn.staticfile.org/popper.js/1.12.5/umd/popper.min.js"></script>
+<script src="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/js/bootstrap.min.js"></script>
+<script src="https://cdn.staticfile.org/vue/2.4.2/vue.min.js"></script>
+<script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>
+<script src="https://cdn.bootcss.com/dayjs/1.7.8/dayjs.min.js"></script>
+<script src="/js/common/common.js"></script>
+<link href="/css/common/common.css" rel="stylesheet" type="text/css">
+<style type="text/css">
+</style>
+</head>
+
+<body>
+	<div th:replace="common/header::html"></div>
+	<div id="rechargeWithdrawLog" v-cloak>
+		<div class="page-body" style="background: #f2f2f2;">
+			<div class="input-group" style="padding-bottom: 0.3rem; padding-top: 0.3rem;">
+				<select class="form-control" style="width: 2.2rem; height: 3rem;" v-model="orderType">
+					<option value="">充值或提现</option>
+					<option v-for="dictItem in orderTypeDictItems" :value="dictItem.dictItemCode">{{dictItem.dictItemName}}</option>
+				</select><input type="date" class="form-control" style="width: 8rem;" v-model="submitTime">
+				<div class="input-group-append">
+					<button class="btn btn-outline-secondary" type="button" v-on:click="query">查询</button>
+				</div>
+			</div>
+			<div class="form-details" v-for="rechargeWithdrawLog in rechargeWithdrawLogs">
+				<div class="form-details-body">
+					<div class="form-details-item">
+						<label>订单号:</label> <span>{{rechargeWithdrawLog.orderNo}}</span>
+					</div>
+					<div class="form-details-item">
+						<label>提交时间:</label> <span>{{rechargeWithdrawLog.submitTime}}</span>
+					</div>
+					<div class="form-details-item">
+						<label></label> <span>{{descFormat(rechargeWithdrawLog)}}</span> <label class="form-details-item-highlight">{{rechargeWithdrawLog.orderStateName}}</label>
+					</div>
+					<div class="form-details-item" v-show="rechargeWithdrawLog.note != null && rechargeWithdrawLog.note != ''">
+						<span class="form-details-item-highlight">{{rechargeWithdrawLog.note}}</span>
+					</div>
+				</div>
+			</div>
+			<div style="padding-left: 13rem;">
+				<ul class="pagination">
+					<li class="page-item"><a class="page-link" v-show="totalPage > 0 && pageNum > 1" v-on:click="prePage">上一页</a></li>
+					<li class="page-item"><a class="page-link" v-show="pageNum >= 1 && pageNum < totalPage" v-on:click="nextPage">下一页</a></li>
+				</ul>
+			</div>
+
+		</div>
+	</div>
+	<div th:replace="common/footer::html"></div>
+	<script type="text/javascript">
+		var rechargeWithdrawLogVM = new Vue({
+			el : '#rechargeWithdrawLog',
+			data : {
+				orderType : '',
+				orderTypeDictItems : [],
+				submitTime : dayjs().format('YYYY-MM-DD'),
+				rechargeWithdrawLogs : [],
+				pageNum : 1,
+				totalPage : 1
+			},
+			computed : {},
+			created : function() {
+			},
+			mounted : function() {
+				headerVM.title = '个人充提';
+				headerVM.showBackFlag = true;
+				this.loadOrderTypeDictItem();
+				this.loadByPage();
+			},
+			methods : {
+
+				loadOrderTypeDictItem : function() {
+					var that = this;
+					that.$http.get('/dictconfig/findDictItemInCache', {
+						params : {
+							dictTypeCode : 'rechargeWithdrawLogOrderType'
+						}
+					}).then(function(res) {
+						this.orderTypeDictItems = res.body.data;
+					});
+				},
+
+				query : function() {
+					this.pageNum = 1;
+					this.loadByPage();
+				},
+
+				prePage : function() {
+					this.pageNum = this.pageNum - 1;
+					this.loadByPage();
+				},
+
+				nextPage : function() {
+					this.pageNum = this.pageNum + 1;
+					this.loadByPage();
+				},
+
+				loadByPage : function() {
+					var that = this;
+					that.$http.get('/rechargeWithdrawLog/findMyRechargeWithdrawLogByPage', {
+						params : {
+							pageSize : 5,
+							pageNum : that.pageNum,
+							startTime : that.submitTime,
+							endTime : that.submitTime,
+							orderType : that.orderType
+						}
+					}).then(function(res) {
+						that.rechargeWithdrawLogs = res.body.data.content;
+						that.pageNum = res.body.data.pageNum;
+						that.totalPage = res.body.data.totalPage;
+					});
+				},
+
+				descFormat : function(rechargeWithdrawLog) {
+					return rechargeWithdrawLog.orderTypeName + rechargeWithdrawLog.amount + '元';
+				}
+			}
+		});
+	</script>
+</body>
+</html>

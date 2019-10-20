@@ -1,0 +1,36 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<style>
+.header-navbar {
+	color: white;
+	display: block;
+	text-align: center;
+	height: 2.5rem;
+	line-height: 1rem;
+}
+</style>
+</head>
+<body>
+	<div id="header" v-cloak>
+		<nav class="navbar fixed-top bg-danger header-navbar" v-show="showHeaderFlag">
+			<i class="fa fa-angle-left" aria-hidden="true" style="float: left; font-size: 1.8rem;" v-show="showBackFlag" v-on:click="window.history.back(-1);"></i><a class="navbar-brand">{{title}}</a>
+		</nav>
+	</div>
+	<script type="text/javascript">
+		var headerVM = new Vue({
+			el : '#header',
+			data : {
+				title : '',
+				showHeaderFlag : true,
+				showBackFlag : false
+			},
+			computed : {},
+			created : function() {
+			},
+			methods : {
+
+			}
+		});
+	</script>
+</body>
+</html>

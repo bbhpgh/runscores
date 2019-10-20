@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>我的主页</title>
+<link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/css/bootstrap.min.css">
+<script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdn.staticfile.org/popper.js/1.12.5/umd/popper.min.js"></script>
+<script src="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/js/bootstrap.min.js"></script>
+<script src="https://cdn.staticfile.org/vue/2.4.2/vue.min.js"></script>
+<script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>
+<link href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<script src="/js/common/common.js"></script>
+<link href="/css/common/common.css" rel="stylesheet" type="text/css">
+<style type="text/css">
+.login-or-register {
+	text-align: center;
+	background-color: #dc3545 !important;
+	border-top: 0.001rem solid #e64f5d;
+	padding-top: 1rem;
+	padding-bottom: 1rem;
+	border-top: 0.001rem solid #e64f5d;
+	padding-top: 1rem;
+	padding-top: 1rem;
+}
+
+.login-or-register button {
+	background-color: #DA5756;
+}
+
+.account-info {
+	display: flex;
+	background-color: #dc3545 !important;
+	border-top: 0.001rem solid #e64f5d;
+}
+
+.user-name {
+	flex: 2;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+	color: #fff;
+	margin-left: 1.5rem;
+}
+
+.user-name div {
+	width: 100%;
+}
+
+.cash-deposit {
+	flex: 3;
+	line-height: 4rem;
+	color: #fff;
+}
+
+.personal-info {
+	flex: 0.8;
+}
+
+.personal-info i {
+	font-size: 3.4rem;
+	color: #fff;
+}
+
+.personal-nav {
+	display: flex;
+}
+
+.personal-nav div {
+	flex: 1;
+}
+
+.home-page-nav {
+	height: 6rem !important;
+	background-color: #fff !important;
+}
+
+.home-page-nav a {
+	min-width: 4rem;
+}
+
+.list-group span {
+	float: right;
+}
+
+.list-group i {
+	font-size: 1.3rem;
+}
+
+.logout-group-item {
+	color: red;
+}
+</style>
+</head>
+
+<body>
+	<div th:replace="common/header::html"></div>
+	<div id="myHomePage" v-cloak>
+		<div class="page-body">
+			<div class="login-or-register" v-show="!isLoggedInFlag">
+				<button type="button" class="btn btn-lg btn-danger" v-on:click="footerVM.goTo('/login')">{{loginOrRegisterTxt}}</button>
+			</div>
+			<div class="account-info" v-show="isLoggedInFlag">
+				<div class="user-name">
+					<div>
+						<label>{{userName}}</label>
+					</div>
+				</div>
+				<div class="cash-deposit">
+					<span>保证金:</span><label>{{cashDeposit != null ? cashDeposit : 0}}元</label>
+				</div>
+				<div class="personal-info">
+					<label><i class="fa fa-angle-right" aria-hidden="true" v-on:click="footerVM.goTo('/personal-info')"></i></label>
+				</div>
+			</div>
+			<div>
+				<nav class="navbar bg-light footer-navbar home-page-nav">
+					<a class="navbar-brand footer-navbar-brand" v-on:click="footerVM.goTo('/recharge')"><i class="fa fa-jpy" aria-hidden="true"></i> <span>充值</span> </a> <a class="navbar-brand footer-navbar-brand" v-on:click="footerVM.goTo('/withdraw')"><i class="fa fa-money" aria-hidden="true"></i> <span>提现</span> </a> <a class="navbar-brand footer-navbar-brand" v-on:click="footerVM.goTo('/recharge-withdraw-log')"><i class="fa fa-hdd-o" aria-hidden="true"></i> <span>个人充提</span> </a>
+				</nav>
+				<nav class="navbar bg-light footer-navbar home-page-nav">
+					<a class="navbar-brand footer-navbar-brand" v-on:click="footerVM.goTo('/gathering-code')"><i class="fa fa-qrcode" aria-hidden="true"></i> <span>收款码</span> </a> <a class="navbar-brand footer-navbar-brand" v-on:click="footerVM.goTo('/receive-order-record')"><i class="fa fa-list-ul" aria-hidden="true"></i> <span>接单记录</span> </a> <a class="navbar-brand footer-navbar-brand" v-on:click="footerVM.goTo('/appeal-record')"><i class="fa fa-clock-o" aria-hidden="true"></i> <span>申诉记录</span> </a>
+				</nav>
+				<nav class="navbar bg-light footer-navbar home-page-nav">
+					<a class="navbar-brand footer-navbar-brand" v-on:click="footerVM.goTo('/personal-account-change')"><i class="fa fa-book" aria-hidden="true"></i> <span>个人帐变</span> </a>
+				</nav>
+			</div>
+			<ul class="list-group">
+				<li class="list-group-item" v-show="isLoggedInFlag && accountType == 'agent'" v-on:click="footerVM.goTo('/agent-center')">代理中心<span><i aria-hidden="true" class="fa fa-angle-right"></i></span>
+				</li>
+				<li class="list-group-item" v-on:click="footerVM.goTo('/online-customer')">在线客服<span><i aria-hidden="true" class="fa fa-angle-right"></i></span>
+				</li>
+				<li class="list-group-item logout-group-item" v-show="isLoggedInFlag" v-on:click="logout">退出登录<span><i aria-hidden="true" class="fa fa-angle-right"></i></span></li>
+			</ul>
+		</div>
+	</div>
+	<div th:replace="common/footer::html"></div>
+	<script type="text/javascript">
+		var myHomePageVM = new Vue({
+			el : '#myHomePage',
+			data : {
+				loginOrRegisterTxt : '',
+				isLoggedInFlag : false,
+				userName : '',
+				cashDeposit : '',
+				accountType : ''
+			},
+			computed : {},
+			created : function() {
+			},
+			mounted : function() {
+				headerVM.title = '我的主页';
+				this.loadRegisterSetting();
+				this.getUserAccountInfo();
+			},
+			methods : {
+				goTo : function(url) {
+					window.location.href = url;
+				},
+
+				loadRegisterSetting : function() {
+					var that = this;
+					that.$http.get('/masterControl/getRegisterSetting').then(function(res) {
+						that.loginOrRegisterTxt = res.body.data.registerEnabled ? '登录/注册' : '登录';
+					});
+				},
+
+				/**
+				 * 获取用户账号信息
+				 */
+				getUserAccountInfo : function() {
+					var that = this;
+					that.$http.get('/userAccount/getUserAccountInfo').then(function(res) {
+						if (res.body.data != null) {
+							that.isLoggedInFlag = true;
+							that.userName = res.body.data.userName;
+							that.cashDeposit = res.body.data.cashDeposit;
+							that.accountType = res.body.data.accountType;
+						}
+					});
+				},
+
+				logout : function() {
+					this.$http.post('/logout').then(function(res) {
+						window.location.href = '/my-home-page';
+					});
+				}
+			}
+		});
+	</script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8">
+<title>统计分析</title>
+<link href="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script src="https://cdn.staticfile.org/vue/2.4.2/vue.min.js"></script>
+<script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>
+<script src="https://cdn.bootcss.com/echarts/4.2.1-rc1/echarts.min.js"></script>
+<link href="/css/common/common.css" rel="stylesheet" type="text/css">
+<style type="text/css">
+.analysis-row1 {
+	margin-left: 20px;
+	margin-right: 20px;
+	padding-top: 20px;
+}
+
+.analysis-card {
+	color: #fff;
+	border-radius: 6px;
+	background: #2c3448;
+	padding-top: 15px;
+	padding-bottom: 15px;
+	margin-right: 26px;
+}
+
+.cash-deposit-index-label {
+	
+}
+
+.cash-deposit-index-value {
+	padding-left: 0px;
+	font-size: 20px;
+	color: #26dad0;
+	font-weight: bold;
+	padding-top: 40px;
+}
+
+.analysis-card-row1 {
+	
+}
+
+.analysis-card-row2 {
+	padding-left: 66px;
+	font-size: 32px;
+	padding-bottom: 10px;
+	color: #26dad0;
+	font-weight: bold;
+}
+
+.analysis-card-row3 {
+	display: flex;
+	justify-content: space-between;
+}
+
+.analysis-card-row3 .index-label {
+	color: #999;
+}
+
+.analysis-card-row3 .index-value {
+	font-weight: bold;
+}
+
+.analysis-row2 {
+	margin-left: 20px;
+	margin-right: 20px;
+	padding-top: 20px;
+}
+</style>
+</head>
+<body>
+	<div th:replace="common/header::html"></div>
+	<div id="statistical-analysis" v-cloak>
+		<div class="row analysis-row1">
+			<div class="col-sm-2 analysis-card">
+				<div class="cash-deposit-index-label">累计保证金</div>
+				<div class="cash-deposit-index-value">{{totalCashDeposit}} 元</div>
+			</div>
+			<div class="col-sm-3 analysis-card">
+				<div class="analysis-card-row1">累计收款金额</div>
+				<div class="analysis-card-row2">{{totalStatistical.tradeAmount}}元</div>
+				<div class="analysis-card-row3">
+					<div>
+						<div class="index-label">累计已支付订单量</div>
+						<div class="index-value">{{totalStatistical.paidOrderNum}}笔</div>
+					</div>
+					<div>
+						<div class="index-label">累计订单量</div>
+						<div class="index-value">{{totalStatistical.orderNum}}笔</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-sm-3 analysis-card">
+				<div class="analysis-card-row1">本月收款金额</div>
+				<div class="analysis-card-row2">{{monthStatistical.tradeAmount}}元</div>
+				<div class="analysis-card-row3">
+					<div>
+						<div class="index-label">本月已支付订单量</div>
+						<div class="index-value">{{monthStatistical.paidOrderNum}}笔</div>
+					</div>
+					<div>
+						<div class="index-label">本月订单量</div>
+						<div class="index-value">{{monthStatistical.orderNum}}笔</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-sm-3 analysis-card">
+				<div class="analysis-card-row1">今日收款金额</div>
+				<div class="analysis-card-row2">{{todayStatistical.tradeAmount}}元</div>
+				<div class="analysis-card-row3">
+					<div>
+						<div class="index-label">今日已支付订单量</div>
+						<div class="index-value">{{todayStatistical.paidOrderNum}}笔</div>
+					</div>
+					<div>
+						<div class="index-label">今日订单量</div>
+						<div class="index-value">{{todayStatistical.orderNum}}笔</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="row analysis-row2">
+			<div class="col-sm-6" id="total-bounty-rank-chart" style="height: 300px;"></div>
+			<div class="col-sm-6" id="today-bounty-rank-chart" style="height: 300px;"></div>
+		</div>
+	</div>
+	<script src="/js/statistical-analysis.js"></script>
+</body>
+</html>

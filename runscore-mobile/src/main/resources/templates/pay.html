@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,Chrome=1">
+<meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="renderer" content="webkit">
+<title>支付</title>
+<script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdn.staticfile.org/vue/2.4.2/vue.min.js"></script>
+<script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>
+<script src="https://cdn.bootcss.com/layer/2.3/layer.js"></script>
+<script src="https://cdn.bootcss.com/dayjs/1.7.8/dayjs.min.js"></script>
+<style type="text/css">
+@charset "UTF-8";
+
+[v-cloak] {
+	display: none;
+}
+
+html, body {
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	font-family: 'Source Sans Pro', 'Helvetica Neue', Helvetica, Arial,
+		sans-serif;
+	font-weight: 400;
+	overflow-x: hidden;
+	overflow-y: auto;
+	background: #f4f6f8;
+	font-size: 14px;
+	color: #616161;
+}
+
+.container {
+	max-width: 650px;
+	margin: 0 auto;
+}
+
+.header {
+	background: #fff;
+	border-bottom: 1px solid #eee;
+	height: 130px;
+	padding-top: 1px;
+	text-align: center;
+	margin-bottom: 15px;
+	box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+}
+
+.header .logo {
+	width: 123px;
+	height: 130px;
+	margin: 0 auto;
+	background: url(union.png) no-repeat;
+	background-size: cover;
+}
+
+.header .logo.union {
+	background-image: url(union.png);
+}
+
+.mainbody {
+	margin: 0 auto;
+	margin-top: 15px;
+	padding-bottom: 10px;
+	text-align: center;
+	color: #333;
+	padding-top: 6px;
+	background: #fff;
+	background-size: auto 6px;
+	min-height: 400px;
+	box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.1);
+}
+
+.realprice {
+	font-size: 26px;
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+
+.discountprice {
+	color: #ff6600;
+	margin-bottom: 10px;
+}
+
+.qrcode {
+	width: 200px;
+	height: 200px;
+	margin: 20px auto;
+	position: relative;
+}
+
+.qrcode img {
+	width: 100%;
+	height: 100%;
+}
+
+.qrcode .logo {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	height: 30px;
+	width: 30px;
+	margin-left: -15px;
+	margin-top: -15px;
+	background: #fff url("wechat.png") no-repeat center center;
+	background-size: cover;
+	border-radius: 3px;
+}
+
+.qrcode .logo.logo-alipay {
+	background-image: url("alipay.png");
+}
+
+.qrcode .expired {
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 100%;
+	opacity: .95;
+	background: #fff url("expired.png") center center no-repeat;
+}
+
+.qrcode .paid {
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 100%;
+	opacity: .95;
+	background: #fff url("paid.png") center center no-repeat;
+}
+
+.warning {
+	color: #f00;
+}
+
+.success {
+	color: #05af19;
+}
+
+.remainseconds {
+	width: 200px;
+	margin: 0 auto;
+	text-align: center;
+}
+
+.remainseconds .time {
+	width: 55px;
+	height: 90px;
+}
+
+.remainseconds .time b {
+	font-size: 40px;
+	font-weight: 300;
+}
+
+.remainseconds .time b, .remainseconds .time em {
+	display: block;
+}
+
+.remainseconds .time em {
+	font-style: normal;
+	color: #888;
+}
+
+@media ( max-width : 375px) {
+	.container {
+		padding: 0;
+	}
+	.remainseconds {
+		padding: 0 35px 10px 35px;
+		height: 80px;
+	}
+	.remainseconds .time {
+		height: 100%;
+	}
+	.remainseconds .time b {
+		font-size: 36px;
+	}
+}
+
+@media ( max-width : 320px) {
+	.remainseconds {
+		padding: 0 35px 10px 35px;
+		height: 87px;
+	}
+	.remainseconds .time {
+		height: 100%;
+	}
+	.remainseconds .time b {
+		font-size: 36px;
+	}
+	.container {
+		padding: 0;
+	}
+	.qrcode {
+		width: 200px;
+		height: 200px;
+	}
+	.realprice {
+		font-size: 36px;
+	}
+}
+
+.minutes {
+	float: left;
+}
+
+.seconds {
+	float: left;
+}
+
+.colon {
+	float: left;
+	width: 20px;
+	font-size: 30px;
+	line-height: 50px;
+	font-family: Vernada, 'Microsoft Yahei';
+}
+
+.tips {
+	background: #fff;
+	padding: 5px 0;
+	line-height: 25px;
+	overflow: hidden;
+	display: block;
+	clear: both;
+}
+
+.help {
+	line-height: 25px;
+	text-align: center;
+	font-size: 14px;
+}
+
+.footer {
+	height: 60px;
+	line-height: 60px;
+	text-align: center;
+	font-size: 12px;
+}
+
+.overdue {
+	position: absolute;
+	width: 100%;
+	margin: 0 auto;
+	top: 260px;
+	display: none;
+}
+</style>
+</head>
+
+<body>
+	<div id="pay" class="container" v-cloak>
+		<div class="mainbody">
+			<div class="realprice">
+				￥<span>{{orderInfo.gatheringAmount}}</span>
+			</div>
+			<h1 class="text-center text-success" style="color: #468847;" v-show="paySuccessFlag">
+				<strong>支付成功</strong>
+			</h1>
+			<div class="qrcode" v-show="!paySuccessFlag">
+				<img class="image" :src="orderInfo.gatheringCodeStorageId != null ? '/storage/fetch/' + orderInfo.gatheringCodeStorageId :  'images/pay/loading.gif'" style="width: 200px; height: 200px;" v-show="!overdueFlag"> <img class="image" src="images/pay/overdue.png" style="width: 200px; height: 200px;" v-show="overdueFlag">
+			</div>
+			<div class="remainseconds">
+				<p>
+					有效时间： <span id="leftTime" style="color: red;">{{countdownMinute}}:{{countdownSecond}}</span><br>过期请重新发起支付
+				</p>
+			</div>
+			<div class="tips">
+				<p style="color: red; font-weight: bold;">二维码仅当次有效，请勿重复支付</p>
+				<p>请使用{{orderInfo.gatheringChannelName}}扫一扫</p>
+				<p>或</p>
+				<p>截屏后打开{{orderInfo.gatheringChannelName}}扫一扫，从相册中选择图片</p>
+			</div>
+			<div class="help">
+				任何问题请联系客服<br> 订单号：<span>{{orderNo}}</span>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">
+		Vue.http.interceptors.push(function(request) {
+			return function(response) {
+				if (response.body.code != 200) {
+					response.ok = false;
+					layer.alert(response.body.msg, {
+						title : '提示',
+						icon : 7,
+						time : 3000
+					});
+				}
+			};
+		});
+
+		var payVM = new Vue({
+			el : '#pay',
+			data : {
+				orderNo : '',
+				overdueFlag : false,
+				residueSecond : '',
+				countdownHour : '',
+				countdownMinute : '--',
+				countdownSecond : '--',
+				countdownInterval : null,
+				paySuccessFlag : false,
+				checkPaySuccessInterval : null,
+				orderInfo : {},
+			},
+			computed : {},
+			created : function() {
+				var orderNo = this.getQueryString('orderNo');
+				if (orderNo == null || orderNo == '') {
+					layer.alert('无效的订单号', {
+						title : '提示',
+						icon : 7,
+						time : 3000
+					});
+					return;
+				}
+				this.orderNo = orderNo;
+				this.firstLoadGatheringCode();
+			},
+			methods : {
+
+				firstLoadGatheringCode : function() {
+					var that = this;
+					that.$http.get('/api/getOrderGatheringCode', {
+						params : {
+							orderNo : that.orderNo
+						}
+					}).then(function(res) {
+						that.orderInfo = res.body.data;
+						if (that.orderInfo.orderState == '4') {
+							that.paySuccessFlag = true;
+							that.toReturnUrl();
+							return;
+						}
+						that.overdueFlag = !dayjs(that.orderInfo.usefulTime).isAfter(dayjs());
+						if (!that.overdueFlag) {
+							that.residueSecond = dayjs(that.orderInfo.usefulTime).diff(dayjs(res.body.timestamp), 'second');
+							that.countdown();
+							if (that.orderInfo.orderState == '1') {
+								that.loadGatheringCode();
+							}
+						}
+					});
+				},
+
+				toReturnUrl : function() {
+					var that = this;
+					setTimeout(function() {
+						window.location.href = that.orderInfo.returnUrl;
+					}, 2000);
+				},
+
+				loadGatheringCode : function() {
+					var that = this;
+					that.loadGatheringCodeInterval = window.setInterval(function() {
+						if (that.orderInfo.orderState == '2' || that.orderInfo.orderState == '4') {
+							if (that.loadGatheringCodeInterval != null) {
+								window.clearInterval(that.loadGatheringCodeInterval);
+								that.loadGatheringCodeInterval = null;
+							}
+							return;
+						}
+						that.loadGatheringCodeInner();
+					}, 3000);
+				},
+
+				loadGatheringCodeInner : function() {
+					var that = this;
+					that.$http.get('/api/getOrderGatheringCode', {
+						params : {
+							orderNo : that.orderNo
+						}
+					}).then(function(res) {
+						that.orderInfo = res.body.data;
+						if (that.orderInfo.orderState == '2' || that.orderInfo.orderState == '4') {
+							that.residueSecond = dayjs(that.orderInfo.usefulTime).diff(dayjs(res.body.timestamp), 'second');
+							that.checkPaySuccess();
+						}
+					});
+				},
+
+				checkPaySuccess : function() {
+					var that = this;
+					that.checkPaySuccessInterval = window.setInterval(function() {
+						if (that.orderInfo.orderState == '4') {
+							that.paySuccessFlag = true;
+							that.toReturnUrl();
+							if (that.checkPaySuccessInterval != null) {
+								window.clearInterval(that.checkPaySuccessInterval);
+								that.checkPaySuccessInterval = null;
+							}
+							if (that.countdownInterval != null) {
+								window.clearInterval(that.countdownInterval);
+								that.countdownInterval = null;
+							}
+							return;
+						}
+						that.checkPaySuccessInner();
+					}, 3000);
+				},
+
+				checkPaySuccessInner : function() {
+					var that = this;
+					that.$http.get('/api/getOrderGatheringCode', {
+						params : {
+							orderNo : that.orderNo
+						}
+					}).then(function(res) {
+						that.orderInfo = res.body.data;
+					});
+				},
+
+				countdown : function() {
+					var that = this;
+					that.countdownInterval = window.setInterval(function() {
+						var residueSecond = that.residueSecond;
+						that.updateCountdownClock(residueSecond);
+						residueSecond--;
+						that.residueSecond = residueSecond;
+						if (residueSecond < 0) {
+							window.clearInterval(that.countdownInterval);
+							that.countdownInterval = null;
+							if (that.loadGatheringCodeInterval != null) {
+								window.clearInterval(that.loadGatheringCodeInterval);
+								that.loadGatheringCodeInterval = null;
+							}
+							that.overdueFlag = true;
+						}
+					}, 1000);
+				},
+
+				/**
+				 * 更新倒计时
+				 */
+				updateCountdownClock : function(residueSecond) {
+					var that = this;
+					var countdownHour = 0;
+					var countdownMinute = 0;
+					var countdownSecond = 0;
+					if (residueSecond > 0) {
+						countdownHour = parseInt(residueSecond / (60 * 60) % 24);
+						countdownMinute = parseInt(residueSecond / 60 % 60);
+						countdownSecond = parseInt(residueSecond % 60);
+					}
+					if (countdownHour < 10) {
+						countdownHour = '0' + countdownHour;
+					}
+					if (countdownMinute < 10) {
+						countdownMinute = '0' + countdownMinute;
+					}
+					if (countdownSecond < 10) {
+						countdownSecond = '0' + countdownSecond;
+					}
+					that.countdownHour = countdownHour;
+					that.countdownMinute = countdownMinute;
+					that.countdownSecond = countdownSecond;
+					console.log(that.countdownSecond);
+				},
+
+				getQueryString : function(name) {
+					var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
+					var r = window.location.search.substr(1).match(reg);
+					if (r != null)
+						return unescape(r[2]);
+					return null;
+				}
+			}
+		});
+	</script>
+</body>
+</html>

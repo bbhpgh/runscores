@@ -1,0 +1,89 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<script src="https://cdn.bootcss.com/layer/2.3/layer.js"></script>
+<style>
+@charset "UTF-8";
+
+[v-cloak] {
+	display: none;
+}
+</style>
+</head>
+<body>
+	<div id="header" v-cloak>
+		<nav class="navbar navbar-expand-sm bg-info navbar-dark" style="justify-content: space-between;">
+			<ul class="navbar-nav">
+				<li class="nav-item" v-bind:class="{'active': currentPathName == '/statistical-analysis'}" v-on:click="navTo('/statistical-analysis')"><a class="nav-link">统计分析</a></li>
+				<li class="nav-item" v-bind:class="{'active': currentPathName == '/platform-order'}" v-on:click="navTo('/platform-order')"><a class="nav-link">商户订单</a></li>
+				<li class="nav-item" v-bind:class="{'active': currentPathName == '/appeal-record'}" v-on:click="navTo('/appeal-record')"><a class="nav-link">申诉记录</a></li>
+			</ul>
+			<form class="form-inline" style="float: right;">
+				<span style="padding-right: 20px;">商户端:{{userName}}</span>
+				<button type="button" class="btn btn-light btn-sm" v-on:click="logout">退出登录</button>
+			</form>
+		</nav>
+
+	</div>
+	<script type="text/javascript">
+		Vue.http.interceptors.push(function(request) {
+			return function(response) {
+				if (response.body.code != 200) {
+					response.ok = false;
+					layer.alert(response.body.msg, {
+						title : '提示',
+						icon : 7,
+						time : 3000
+					});
+				}
+			};
+		});
+		var header = new Vue({
+			el : '#header',
+			data : {
+				userName : '',
+				currentPathName : ''
+			},
+			computed : {},
+			created : function() {
+				this.currentPathName = window.location.pathname;
+				this.getUserAccountInfo();
+			},
+			methods : {
+				navTo : function(url) {
+					window.location.href = url;
+				},
+
+				/**
+				 * 获取用户账号信息
+				 */
+				getUserAccountInfo : function() {
+					var that = this;
+					that.$http.get('/userAccount/getUserAccountInfo').then(function(res) {
+						if (res.body.data == null) {
+							that.isLoggedInFlag = false;
+						} else {
+							that.userName = res.body.data.userName;
+						}
+					});
+				},
+
+				logout : function() {
+					this.$http.post('/logout').then(function(res) {
+						layer.open({
+							title : '提示',
+							icon : '1',
+							closeBtn : 0,
+							btn : [],
+							content : '退出成功!',
+							time : 2000,
+							end : function() {
+								window.location.href = '/login';
+							}
+						});
+					});
+				},
+			}
+		});
+	</script>
+</body>
+</html>

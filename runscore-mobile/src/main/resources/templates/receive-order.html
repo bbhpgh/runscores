@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>接单</title>
+<link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/css/bootstrap.min.css">
+<script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdn.staticfile.org/popper.js/1.12.5/umd/popper.min.js"></script>
+<script src="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/js/bootstrap.min.js"></script>
+<script src="https://cdn.staticfile.org/vue/2.4.2/vue.min.js"></script>
+<script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>
+<link href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<script src="https://cdn.bootcss.com/layer/2.3/layer.js"></script>
+<script src="/js/common/common.js"></script>
+<link href="/css/common/common.css" rel="stylesheet" type="text/css">
+<style type="text/css">
+.suspend-receive-order {
+	padding-top: 6rem;
+}
+
+.suspend-receive-order-tip {
+	text-align: center;
+	font-weight: bold;
+	font-size: 1.4rem;
+	color: red;
+	padding-bottom: 4rem;
+}
+
+.receive-order-action {
+	display: flex;
+	justify-content: center;
+	flex-wrap: wrap;
+}
+
+.receive-order-action-body {
+	border-radius: 50%;
+	background: linear-gradient(120deg, #fed176, #fd8793);
+	text-align: center;
+	height: 12rem;
+	width: 12rem;
+	line-height: 12rem;
+	color: #fff;
+	font-weight: bold;
+	font-size: 1.6rem;
+}
+
+.receive-order {
+	padding-top: 1rem;
+}
+
+.receive-order-tip {
+	text-align: center;
+	font-weight: bold;
+	font-size: 1.4rem;
+	color: #495057;
+	padding-bottom: 1rem;
+}
+
+.suspend-receive-order-action {
+	display: flex;
+	justify-content: center;
+	flex-wrap: wrap;
+	padding-bottom: 1rem;
+}
+
+.suspend-receive-order-action-body {
+	border-radius: 50%;
+	background: linear-gradient(120deg, #fed176, #fd8793);
+	text-align: center;
+	height: 8rem;
+	width: 8rem;
+	line-height: 8rem;
+	color: #e45d5d;
+	font-weight: bold;
+	font-size: 1.4rem;
+}
+
+.platform-order-list-area {
+	
+}
+
+.platform-order-list-area-tip {
+	text-align: center;
+	padding-bottom: 1rem;
+	color: #dc3545;
+	font-weight: bold;
+}
+
+.slide-fade-enter-active {
+	transition: all .3s ease;
+}
+
+.slide-fade-leave-active {
+	transition: all .8s cubic-bezier(1.0, 0.5, 0.8, 1.0);
+}
+
+.slide-fade-enter, .slide-fade-leave-to {
+	transform: translateX(10px);
+	opacity: 0;
+}
+
+.platform-order {
+	background: rgb(242, 242, 242);
+	margin-bottom: 1rem;
+	display: flex;
+	padding-left: 1.2rem;
+	padding-right: 0.2rem;
+	padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+.platform-order-body {
+	flex: 4;
+	display: flex;
+	flex-direction: column;
+	margin-top: 0.5rem;
+}
+
+.platform-order-body-item label {
+	text-align: end;
+	width: 5rem;
+	margin-right: 0.5rem;
+}
+
+.platform-order-body-item span {
+	min-width: 5rem;
+	display: inline-block;
+}
+
+.platform-order-body-item button {
+	width: 96%;
+}
+
+.platform-order-body-item-highlight {
+	color: #c3606a;
+}
+</style>
+</head>
+
+<body>
+	<div th:replace="common/header::html"></div>
+	<div id="receiveOrder" v-cloak>
+		<div class="page-body">
+			<div class="suspend-receive-order" v-show="receiveOrderState == '2'">
+				<div class="suspend-receive-order-tip">当前处于停止接单状态</div>
+				<div class="receive-order-action">
+					<div class="receive-order-action-body" v-on:click="updateReceiveOrderState('1')">开始接单</div>
+				</div>
+			</div>
+			<div class="receive-order" v-show="receiveOrderState == '1'">
+				<div class="receive-order-tip">当前处于开始接单状态</div>
+				<div class="suspend-receive-order-action">
+					<div class="suspend-receive-order-action-body" v-on:click="updateReceiveOrderState('2')">停止接单</div>
+				</div>
+
+				<div class="platform-order-list-area">
+					<transition name="slide-fade">
+					<div class="platform-order-list-area-tip" v-show="platformOrderListAreaTipFlag">{{platformOrderListAreaTip}}</div>
+					</transition>
+					<div class="platform-order" v-for="order in waitReceivingOrders">
+						<div class="platform-order-body">
+							<div class="platform-order-body-item">
+								<label>订单号:</label> <span>{{order.orderNo}}</span>
+							</div>
+							<div class="platform-order-body-item">
+								<label>发起时间:</label> <span>{{order.submitTime}}</span>
+							</div>
+							<div class="platform-order-body-item">
+								<label>收款渠道:</label> <span>{{order.gatheringChannelName}}</span><label>收款金额:</label> <span class="platform-order-body-item-highlight">{{order.gatheringAmount}}元</span>
+							</div>
+							<div class="platform-order-body-item">
+								<button class="btn btn-outline-info btn-lg" type="button" v-on:click="receiveOrder(order.id)">立即接单</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div th:replace="common/footer::html"></div>
+	<script type="text/javascript">
+		var receiveOrderVM = new Vue({
+			el : '#receiveOrder',
+			data : {
+				receiveOrderState : '',
+				waitReceivingOrders : [],
+				loadPlatformOrderInterval : null,
+				platformOrderListAreaTipFlag : true,
+				platformOrderListAreaTip : '',
+			},
+			computed : {},
+			created : function() {
+			},
+			mounted : function() {
+				headerVM.title = '接单';
+				this.getUserAccountInfo();
+			},
+			methods : {
+				updateReceiveOrderState : function(receiveOrderState) {
+					var that = this;
+					that.$http.post('/userAccount/updateReceiveOrderState', {
+						receiveOrderState : receiveOrderState
+					}, {
+						emulateJSON : true
+					}).then(function(res) {
+						that.getUserAccountInfo();
+					});
+				},
+
+				/**
+				 * 获取用户接单状态
+				 */
+				getUserAccountInfo : function() {
+					var that = this;
+					that.$http.get('/userAccount/getUserAccountInfo').then(function(res) {
+						that.receiveOrderState = res.body.data.receiveOrderState;
+						if (that.receiveOrderState == '1') {
+							that.loadPlatformOrder();
+							that.loadPlatformOrderInterval = window.setInterval(function() {
+								that.loadPlatformOrder();
+							}, 6000);
+						} else if (that.receiveOrderState == '2') {
+							that.waitReceivingOrders = [];
+							window.clearInterval(that.loadPlatformOrderInterval);
+						}
+					});
+				},
+
+				loadPlatformOrder : function() {
+					var that = this;
+					that.platformOrderListAreaTipFlag = true;
+					that.platformOrderListAreaTip = '正在获取订单...';
+					that.$http.get('/platformOrder/findMyWaitReceivingOrder').then(function(res) {
+						that.waitReceivingOrders = res.body.data;
+						if (that.waitReceivingOrders == null || that.waitReceivingOrders.length == 0) {
+							that.platformOrderListAreaTip = '暂无最新订单';
+						} else {
+							that.platformOrderListAreaTip = '已获取最新订单';
+						}
+						setTimeout(function() {
+							that.platformOrderListAreaTipFlag = false;
+						}, 2000);
+					});
+				},
+
+				receiveOrder : function(orderId) {
+					var that = this;
+					that.$http.get('/platformOrder/receiveOrder', {
+						params : {
+							orderId : orderId
+						}
+					}).then(function(res) {
+						layer.alert('接单成功,请及时审核', {
+							icon : 1,
+							time : 2000,
+							shade : false
+						});
+						that.loadPlatformOrder();
+					});
+				}
+			}
+		});
+	</script>
+</body>
+</html>

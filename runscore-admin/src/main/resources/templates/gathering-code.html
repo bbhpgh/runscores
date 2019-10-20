@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8">
+<title>收款码</title>
+<link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/css/bootstrap.min.css">
+<script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdn.staticfile.org/popper.js/1.12.5/umd/popper.min.js"></script>
+<script src="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/js/bootstrap.min.js"></script>
+<script src="https://cdn.staticfile.org/vue/2.4.2/vue.min.js"></script>
+<script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>
+<script src="https://cdn.bootcss.com/dayjs/1.7.8/dayjs.min.js"></script>
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.13.1/bootstrap-table.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.13.1/bootstrap-table.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.13.1/locale/bootstrap-table-zh-CN.min.js"></script>
+<link href="https://cdn.bootcss.com/bootstrap-fileinput/5.0.1/css/fileinput.min.css" rel="stylesheet">
+<script src="https://cdn.bootcss.com/bootstrap-fileinput/5.0.1/js/fileinput.min.js"></script>
+<link href="/css/common/common.css" rel="stylesheet" type="text/css">
+<style type="text/css">
+.kv-file-content {
+	width: 100% !important;
+}
+
+.view-gathering-code-dialog .modal-content {
+	width: 80%;
+}
+</style>
+</head>
+
+<body>
+	<div th:replace="common/header::html"></div>
+	<div id="gathering-code" v-cloak>
+		<form class="form-inline common-query-cond-form" action="#">
+			<div class="form-group common-query-cond">
+				<label>收款渠道:</label> <select class="form-control-sm" v-model="gatheringChannelCode">
+					<option value="">请选择</option>
+					<option v-for="dictItem in gatheringChannelDictItems" :value="dictItem.dictItemCode">{{dictItem.dictItemName}}</option>
+				</select>
+			</div>
+			<div class="form-group common-query-cond">
+				<label>收款码状态:</label> <select class="form-control-sm" v-model="state">
+					<option value="">全部</option>
+					<option v-for="dictItem in gatheringCodeStateDictItems" :value="dictItem.dictItemCode">{{dictItem.dictItemName}}</option>
+				</select>
+			</div>
+			<div class="form-group common-query-cond">
+				<label>收款人:</label><input type="text" class="form-control-sm" v-model="payee">
+			</div>
+			<div class="form-group common-query-cond">
+				<label>所属账号:</label><input type="text" class="form-control-sm" v-model="userName">
+			</div>
+			<button type="button" class="btn btn-danger btn-sm" v-on:click="refreshTable">搜索</button>
+		</form>
+		<form class="form-inline common-query-cond-form float-right" action="#">
+			<button type="button" class="btn btn-info btn-sm" v-on:click="openAddGatheringCodeModal">新增收款码</button>
+		</form>
+		<table class="common-table gathering-code-table"></table>
+
+		<div v-show="addOrUpdateGatheringCodeFlag">
+			<div class="modal-mask">
+				<div class="modal-wrapper">
+					<div class="modal-dialog">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title">{{gatheringCodeActionTitle}}</h5>
+								<button type="button" class="close" data-dismiss="modal" aria-label="Close" v-on:click="addOrUpdateGatheringCodeFlag = false">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+							<div class="modal-body" style="height: 460px; overflow: auto;">
+								<form>
+									<div class="form-group row">
+										<div class="col-sm-12">
+											<label>所属账号:</label> <input type="text" class="form-control" v-model="editGatheringCode.userName" :disabled="editGatheringCode.id != null">
+										</div>
+									</div>
+									<div class="form-group row">
+										<div class="col-sm-6">
+											<label>收款渠道:</label> <select class="form-control" v-model="editGatheringCode.gatheringChannelCode">
+												<option value="">请选择</option>
+												<option v-for="dictItem in gatheringChannelDictItems" :value="dictItem.dictItemCode">{{dictItem.dictItemName}}</option>
+											</select>
+										</div>
+										<div class="col-sm-6">
+											<label>收款码状态:</label> <select class="form-control" v-model="editGatheringCode.state">
+												<option value="">请选择</option>
+												<option v-for="dictItem in gatheringCodeStateDictItems" :value="dictItem.dictItemCode">{{dictItem.dictItemName}}</option>
+											</select>
+										</div>
+									</div>
+									<div class="form-group row">
+										<div class="col-sm-6">
+											<label><span>收款金额:</span>
+												<div class="custom-control custom-checkbox custom-control-inline" v-on:click="switchGatheringAmountMode">
+													<input type="checkbox" id="fixedGatheringAmount" class="custom-control-input" v-model="editGatheringCode.fixedGatheringAmount"> <label for="fixedGatheringAmount" class="custom-control-label">固定收款金额</label>
+												</div> </label><input type="number" class="form-control" v-model="editGatheringCode.gatheringAmount" :disabled="!editGatheringCode.fixedGatheringAmount">
+										</div>
+										<div class="col-sm-6">
+											<label>收款人:</label><input type="text" class="form-control" v-model="editGatheringCode.payee">
+										</div>
+									</div>
+									<div class="form-group row">
+										<div class="col-sm-12">
+											<label>收款码:</label> <input type="file" class="form-control gathering-code-pic">
+										</div>
+									</div>
+								</form>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-success btn-sm" v-on:click="addOrUpdateGatheringCode">保存</button>
+								<button type="button" class="btn btn-sm" v-on:click="addOrUpdateGatheringCodeFlag = false">取消</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div v-show="viewGatheringCodeFlag">
+			<div class="modal-mask">
+				<div class="modal-wrapper">
+					<div class="modal-dialog view-gathering-code-dialog">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title">收款码</h5>
+								<button type="button" class="close" data-dismiss="modal" aria-label="Close" v-on:click="viewGatheringCodeFlag = false">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+							<div class="modal-body">
+								<img :src="viewGatheringCodeUrl" style="height: 253px; width: 100%;" />
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script src="/js/gathering-code.js"></script>
+</body>
+</html>

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8">
+<title>支付通道</title>
+<link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/css/bootstrap.min.css">
+<script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdn.bootcss.com/jquery-migrate/1.1.1/jquery-migrate.min.js"></script>
+<script src="https://cdn.staticfile.org/popper.js/1.12.5/umd/popper.min.js"></script>
+<script src="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/js/bootstrap.min.js"></script>
+<script src="https://cdn.staticfile.org/vue/2.4.2/vue.min.js"></script>
+<script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>
+<script src="https://cdn.bootcss.com/dayjs/1.7.8/dayjs.min.js"></script>
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.14.2/bootstrap-table.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.14.2/bootstrap-table.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.14.2/locale/bootstrap-table-zh-CN.min.js"></script>
+<link href="/css/common/common.css" rel="stylesheet" type="text/css">
+<style type="text/css">
+.add-or-update-pay-channel-dialog {
+	max-width: 100%;
+	width: 48%;
+}
+
+.game-category-nav {
+	display: inline-flex;
+	height: 47px;
+	line-height: 29px;
+}
+
+.game-category-nav .nav-item {
+	min-width: 105px;
+	text-align: center;
+}
+
+.game-category-nav a {
+	color: #666;
+}
+
+.selected-game-category-nav-item {
+	border-bottom: 2px solid #5584ff;
+}
+
+.selected-game-category-nav-item a {
+	color: #007bff;
+}
+</style>
+</head>
+
+<body>
+	<div th:replace="common/header::html"></div>
+	<div id="pay-channel" v-cloak>
+		<div v-show="showPayChannelFlag">
+			<ul class="nav game-category-nav">
+				<li class="nav-item" v-for="payTypeDict in payTypeDicts" v-bind:class="{'selected-game-category-nav-item': payTypeDict == tabWithPayType}" v-on:click="tabWithPayType = payTypeDict"><a class="nav-link">{{payTypeDict.name}}</a></li>
+			</ul>
+			<form class="form-inline common-query-cond-form float-right">
+				<button type="button" class="btn btn-secondary btn-sm" style="margin-right: 4px;" v-on:click="toPayTypePage">支付类型维护</button>
+				<button type="button" class="btn btn-info btn-sm" style="margin-right: 4px;" v-on:click="showAddPayChannelModal">新增通道</button>
+			</form>
+			<table class="table table-hover common-table">
+				<thead>
+					<tr>
+						<th>通道code</th>
+						<th>通道名称</th>
+						<th>排序号</th>
+						<th>是否启用</th>
+						<th v-show="tabWithPayType.bankCardFlag">收款银行</th>
+						<th v-show="tabWithPayType.bankCardFlag">收款人</th>
+						<th v-show="tabWithPayType.bankCardFlag">卡号</th>
+						<th v-show="!tabWithPayType.bankCardFlag">支付平台code</th>
+						<th v-show="!tabWithPayType.bankCardFlag">支付平台名称</th>
+						<th v-show="!tabWithPayType.bankCardFlag">对应通道code</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr v-for="payChannel in payChannels" v-show="tabWithPayType.id == payChannel.payTypeId">
+						<td>{{payChannel.channelCode}}</td>
+						<td>{{payChannel.channelName}}</td>
+						<td>{{payChannel.orderNo}}</td>
+						<td>{{payChannel.enabled ? '启用' : '禁用'}}</td>
+						<td v-show="tabWithPayType.bankCardFlag">{{payChannel.bankName}}</td>
+						<td v-show="tabWithPayType.bankCardFlag">{{payChannel.accountHolder}}</td>
+						<td v-show="tabWithPayType.bankCardFlag">{{payChannel.bankCardAccount}}</td>
+						<td v-show="!tabWithPayType.bankCardFlag">{{payChannel.payPlatformCode}}</td>
+						<td v-show="!tabWithPayType.bankCardFlag">{{payChannel.payPlatformName}}</td>
+						<td v-show="!tabWithPayType.bankCardFlag">{{payChannel.payPlatformChannelCode}}</td>
+						<td>
+							<button type="button" class="btn btn-outline-success btn-sm" v-on:click="showEditPayChannelModal(payChannel.id)">编辑</button>
+							<button type="button" class="btn btn-outline-danger btn-sm" v-on:click="delPayChannel(payChannel.id)">删除</button>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+
+		<div v-if="addOrUpdatePayChannelFlag">
+			<div class="modal-mask">
+				<div class="modal-wrapper">
+					<div class="modal-dialog add-or-update-pay-channel-dialog">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title">{{payChannelActionTitle}}</h5>
+								<button type="button" class="close" data-dismiss="modal" aria-label="Close" v-on:click="addOrUpdatePayChannelFlag = false">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+							<div class="modal-body">
+								<form>
+									<div class="form-group row">
+										<div class="col-sm-6">
+											<label>通道code:</label> <input type="text" class="form-control" v-model="editPayChannel.channelCode">
+										</div>
+										<div class="col-sm-6">
+											<label>通道名称:</label> <input type="text" class="form-control" v-model="editPayChannel.channelName">
+										</div>
+									</div>
+									<div class="form-group row">
+										<div class="col-sm-6">
+											<label>排序号:</label> <input type="number" class="form-control" v-model="editPayChannel.orderNo">
+										</div>
+										<div class="col-sm-6">
+											<label>是否启用:</label> <select class="form-control" v-model="editPayChannel.enabled">
+												<option value="true">启用</option>
+												<option value="false">禁用</option>
+											</select>
+										</div>
+									</div>
+									<div class="form-group row" v-show="tabWithPayType.bankCardFlag">
+										<div class="col-sm-4">
+											<label>收款银行:</label> <input type="text" class="form-control" v-model="editPayChannel.bankName">
+										</div>
+										<div class="col-sm-4">
+											<label>收款人:</label> <input type="text" class="form-control" v-model="editPayChannel.accountHolder">
+										</div>
+										<div class="col-sm-4">
+											<label>卡号:</label> <input type="text" class="form-control" v-model="editPayChannel.bankCardAccount">
+										</div>
+									</div>
+									<div class="form-group row" v-show="!tabWithPayType.bankCardFlag">
+										<div class="col-sm-4">
+											<label>支付平台code:</label> <input type="text" class="form-control" v-model="editPayChannel.payPlatformCode">
+										</div>
+										<div class="col-sm-4">
+											<label>支付平台名称:</label> <input type="text" class="form-control" v-model="editPayChannel.payPlatformName">
+										</div>
+										<div class="col-sm-4">
+											<label>对应通道code:</label> <input type="text" class="form-control" v-model="editPayChannel.payPlatformChannelCode">
+										</div>
+									</div>
+								</form>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-success btn-sm" v-on:click="addOrUpdatePayChannel">保存</button>
+								<button type="button" class="btn btn-sm" v-on:click="addOrUpdatePayChannelFlag = false">取消</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div v-show="showPayTypeFlag">
+			<form class="form-inline common-query-cond-form float-right">
+				<button type="button" class="btn btn-info btn-sm" style="margin-right: 4px;" v-on:click="showAddPayTypeModal">新增支付类型</button>
+				<button type="button" class="btn btn-sm" v-on:click="backToPayChannelPage">返回</button>
+			</form>
+			<table class="table table-hover common-table">
+				<thead>
+					<tr>
+						<th>支付类型</th>
+						<th>支付类型名称</th>
+						<th>是否属于银行卡入款</th>
+						<th>排序号</th>
+						<th>是否启用</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr v-for="payType in payTypes">
+						<td>{{payType.type}}</td>
+						<td>{{payType.name}}</td>
+						<td>{{payType.bankCardFlag ? '是' : '不是'}}</td>
+						<td>{{payType.orderNo}}</td>
+						<td>{{payType.enabled ? '启用' : '禁用'}}</td>
+						<td>
+							<button type="button" class="btn btn-outline-success btn-sm" v-on:click="showEditPayTypeModal(payType.id)">编辑</button>
+							<button type="button" class="btn btn-outline-danger btn-sm" v-on:click="delPayType(payType.id)">删除</button>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+
+		<div v-if="addOrUpdatePayTypeFlag">
+			<div class="modal-mask">
+				<div class="modal-wrapper">
+					<div class="modal-dialog">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title">{{payTypeActionTitle}}</h5>
+								<button type="button" class="close" data-dismiss="modal" aria-label="Close" v-on:click="addOrUpdatePayTypeFlag = false">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+							<div class="modal-body">
+								<form>
+									<div class="form-group row">
+										<div class="col-sm-12">
+											<label>支付类型:</label> <input type="text" class="form-control" v-model="editPayType.type">
+										</div>
+									</div>
+									<div class="form-group row">
+										<div class="col-sm-12">
+											<label>名称:</label> <input type="text" class="form-control" v-model="editPayType.name">
+										</div>
+									</div>
+									<div class="form-group row">
+										<div class="col-sm-12">
+											<label>是否属于银行卡入款:</label> <select class="form-control" v-model="editPayType.bankCardFlag">
+												<option value="true">是</option>
+												<option value="false">不是</option>
+											</select>
+										</div>
+									</div>
+									<div class="form-group row">
+										<div class="col-sm-6">
+											<label>排序号:</label> <input type="number" class="form-control" v-model="editPayType.orderNo">
+										</div>
+										<div class="col-sm-6">
+											<label>是否启用:</label> <select class="form-control" v-model="editPayType.enabled">
+												<option value="true">启用</option>
+												<option value="false">禁用</option>
+											</select>
+										</div>
+									</div>
+								</form>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-success btn-sm" v-on:click="addOrUpdatePayType">保存</button>
+								<button type="button" class="btn btn-sm" v-on:click="addOrUpdatePayTypeFlag = false">取消</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script src="/js/pay-channel.js"></script>
+</body>
+</html>

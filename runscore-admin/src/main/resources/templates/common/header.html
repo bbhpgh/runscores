@@ -1,0 +1,303 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<script src="https://cdn.bootcss.com/layer/2.3/layer.js"></script>
+<link href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<style>
+@charset "UTF-8";
+
+[v-cloak] {
+	display: none;
+}
+
+.dropdown-item.active {
+	color: #fff !important;
+}
+
+.unread-msg-nav-item {
+	width: 70px;
+	text-align: center;
+}
+
+.unread-msg-nav-item .label {
+	background-color: #00a65a !important;
+	position: absolute;
+	top: 9px;
+	right: 5px;
+	text-align: center;
+	font-size: 9px;
+	padding: 2px 3px;
+	line-height: .9;
+	width: 21px;
+}
+
+.unread-msg-nav-item .dropdown-menu {
+	padding: 0;
+}
+
+.unread-msg-nav-item .dropdown-toggle::after {
+	border: 0;
+}
+
+.unread-msg-nav-item .card {
+	width: 280px;
+}
+
+.unread-msg-nav-item .card-body {
+	padding: 0;
+}
+
+.unread-msg-nav-item .card-header, .unread-msg-nav-item .card-footer {
+	padding: 0.30rem 0.70rem;
+}
+
+.unread-msg-nav-item .card-header {
+	border-bottom: 0;
+}
+
+.unread-msg-nav-item .card-footer {
+	background-color: #fff;
+	text-align: center;
+	cursor: pointer;
+	color: #3788ee;
+	border-top: unset;
+}
+
+.unreaded-msg {
+	cursor: pointer;
+	padding: 0 25px;
+	border-bottom: 1px solid #eee;
+	align-items: center;
+	display: flex;
+}
+
+.unreaded-msg:hover {
+	background: rgba(51, 51, 51, .08);
+}
+
+.unreaded-msg-title:before {
+	content: "";
+	position: absolute;
+	width: 5px;
+	height: 5px;
+	background: #f1556c;
+	border-radius: 5px;
+	left: -10px;
+	top: 5px;
+}
+
+.unreaded-msg-title {
+	margin: 8px 0;
+	position: relative;
+	font-size: 13px;
+}
+
+.unreaded-msg-desc {
+	margin: 8px 0;
+	font-size: 13px;
+	color: #868383;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	width: 250px;
+}
+</style>
+</head>
+<body>
+	<div id="header" v-cloak>
+		<nav class="navbar navbar-expand-sm bg-info navbar-dark" style="justify-content: space-between;">
+			<ul class="navbar-nav">
+				<template v-for="(menu, index) in menus">
+				<li class="nav-item" v-if="menu.subMenus.length == 0" v-bind:class="{'active': currentPathName == menu.url}" v-on:click="navTo(menu.url)"><a class="nav-link">{{menu.name}}</a></li>
+				<li class="nav-item dropdown" v-if="menu.subMenus.length > 0" v-bind:class="{'active': parentMenuActive(menu.subMenus)}"><a class="nav-link dropdown-toggle" data-toggle="dropdown">{{menu.name}}</a>
+					<div class="dropdown-menu">
+						<a class="dropdown-item" v-for="subMenu in menu.subMenus" v-bind:class="{'active': currentPathName == subMenu.url}" v-on:click="navTo(subMenu.url)">{{subMenu.name}}</a>
+					</div></li>
+				</template>
+			</ul>
+
+			<ul class="navbar-nav" style="float: right;">
+				<li class="nav-item dropdown unread-msg-nav-item"><a class="nav-link dropdown-toggle" data-toggle="dropdown"><i class="fa fa-bell"></i><span class="label label-success">{{todoAppealNum}}</span></a>
+					<div class="dropdown-menu dropdown-menu-right">
+						<div>
+							<div class="card">
+								<div class="card-header">你有{{todoAppealNum}}条未处理的申诉记录</div>
+								<div class="card-body">
+									<div class="unreaded-msg" v-for="todoAppeal in top5TodoAppeals" v-on:click="navTo('/appeal-details?id=' + todoAppeal.id)">
+										<div>
+											<p class="unreaded-msg-title">{{todoAppeal.merchantName}}</p>
+											<p class="unreaded-msg-desc">{{todoAppeal.appealTypeName}}</p>
+										</div>
+									</div>
+								</div>
+								<div class="card-footer" v-on:click="navTo('/appeal-record?appealState=1')">查看更多</div>
+							</div>
+						</div>
+					</div></li>
+				<li class="nav-item dropdown"><a class="nav-link dropdown-toggle" data-toggle="dropdown">zohar001</a>
+					<div class="dropdown-menu dropdown-menu-right">
+						<a class="dropdown-item" v-on:click="logout"><i class="fa fa-sign-out"></i>退出登录</a>
+					</div></li>
+			</ul>
+		</nav>
+		<template v-if="playAudioFlag"> <iframe autoplay="autoplay" src="audio/ring.wav" style="display: none;"></iframe> </template>
+	</div>
+	<script type="text/javascript">
+		Vue.http.interceptors.push(function(request) {
+			return function(response) {
+				if (response.body.code != 200) {
+					response.ok = false;
+					layer.alert(response.body.msg, {
+						title : '提示',
+						icon : 7,
+						time : 3000
+					});
+				}
+			};
+		});
+		var header = new Vue({
+			el : '#header',
+			data : {
+				userName : '',
+				currentPathName : '',
+				menus : [ {
+					name : '统计分析',
+					url : '/statistical-analysis',
+					subMenus : []
+				}, {
+					name : '总控室',
+					url : '/master-control-room',
+					subMenus : []
+				}, {
+					name : '商户订单',
+					url : '/platform-order',
+					subMenus : []
+				}, {
+					name : '申诉记录',
+					url : '/appeal-record',
+					subMenus : []
+				}, {
+					name : '账号相关',
+					url : '',
+					subMenus : [ {
+						name : '账号管理',
+						url : '/account-manage'
+					}, {
+						name : '收款码',
+						url : '/gathering-code'
+					}, {
+						name : '商户管理',
+						url : '/merchant'
+					}, {
+						name : '返点表',
+						url : '/rebate'
+					}, {
+						name : '账变日志',
+						url : '/account-change-log'
+					}, {
+						name : '登录日志',
+						url : '/login-log'
+					} ]
+				}, {
+					name : '充值提现',
+					url : '',
+					subMenus : [ {
+						name : '充值订单',
+						url : '/recharge-order'
+					}, {
+						name : '提现记录',
+						url : '/withdraw-record'
+					}, {
+						name : '支付通道',
+						url : '/pay-channel'
+					} ]
+				}, {
+					name : '系统管理',
+					url : '',
+					subMenus : [ {
+						name : '配置项管理',
+						url : '/config-manage'
+					}, {
+						name : '字典管理',
+						url : '/dict-manage'
+					} ]
+				} ],
+				top5TodoAppeals : [],
+				todoAppealNum : sessionStorage.getItem('todoAppealNum') == null ? 0 : sessionStorage.getItem('todoAppealNum'),
+				playAudioFlag : false,
+			},
+			computed : {},
+			created : function() {
+
+			},
+			mounted : function() {
+				var that = this;
+				that.currentPathName = window.location.pathname;
+				that.getUserAccountInfo();
+				that.loadTop5TodoAppealByPage();
+				/* window.setInterval(function() {
+					that.loadTop5TodoAppealByPage();
+				}, 5000); */
+			},
+			methods : {
+
+				parentMenuActive : function(subMenus) {
+					for (var i = 0; i < subMenus.length; i++) {
+						if (subMenus[i].url == this.currentPathName) {
+							return true;
+						}
+					}
+					return false;
+				},
+
+				navTo : function(url) {
+					window.location.href = url;
+				},
+
+				loadTop5TodoAppealByPage : function() {
+					var that = this;
+					that.$http.get('/appeal/findTop5TodoAppealByPage').then(function(res) {
+						that.playAudioFlag = false;
+						that.top5TodoAppeals = res.body.data.content;
+						var lastTimeTodoAppealNum = that.todoAppealNum;
+						that.todoAppealNum = res.body.data.total;
+						sessionStorage.setItem('todoAppealNum', that.todoAppealNum);
+						if (lastTimeTodoAppealNum != null && lastTimeTodoAppealNum < that.todoAppealNum) {
+							that.playAudioFlag = true;
+						}
+					});
+				},
+
+				/**
+				 * 获取用户账号信息
+				 */
+				getUserAccountInfo : function() {
+					var that = this;
+					that.$http.get('/userAccount/getUserAccountInfo').then(function(res) {
+						if (res.body.data == null) {
+							that.isLoggedInFlag = false;
+						} else {
+							that.userName = res.body.data.userName;
+						}
+					});
+				},
+
+				logout : function() {
+					this.$http.post('/logout').then(function(res) {
+						layer.open({
+							title : '提示',
+							icon : '1',
+							closeBtn : 0,
+							btn : [],
+							content : '退出成功!',
+							time : 2000,
+							end : function() {
+								window.location.href = '/login';
+							}
+						});
+					});
+				},
+			}
+		});
+	</script>
+</body>
+</html>

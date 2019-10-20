@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8">
+<title>商户订单</title>
+<link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/css/bootstrap.min.css">
+<script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdn.staticfile.org/popper.js/1.12.5/umd/popper.min.js"></script>
+<script src="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/js/bootstrap.min.js"></script>
+<script src="https://cdn.staticfile.org/vue/2.4.2/vue.min.js"></script>
+<script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>
+<script src="https://cdn.bootcss.com/dayjs/1.7.8/dayjs.min.js"></script>
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.13.1/bootstrap-table.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.13.1/bootstrap-table.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.13.1/locale/bootstrap-table-zh-CN.min.js"></script>
+<link href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<script src="https://unpkg.com/art-template@4.13.2/lib/template-web.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-fileinput/5.0.1/css/fileinput.min.css" media="all" rel="stylesheet" type="text/css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-fileinput/5.0.1/js/fileinput.min.js"></script>
+<link href="/css/common/common.css" rel="stylesheet" type="text/css">
+<script id="platform-order-detail" type="text/html">
+	<div class="table-detail">
+		<div class="row">
+				<div class="col-sm-5 table-detail-item-label">订单有效时间:</div>
+				<div class="col-sm-7 table-detail-item-value">{{platformOrderInfo.usefulTime }}</div>
+		</div>	
+		<div class="row">
+				<div class="col-sm-5 table-detail-item-label">商户确认时间:</div> 
+				<div class="col-sm-7 table-detail-item-value">{{platformOrderInfo.platformConfirmTime }}</div>
+		</div>	
+		<div class="row">
+				<div class="col-sm-5 table-detail-item-label">系统处理时间:</div>
+				<div class="col-sm-7 table-detail-item-value">{{platformOrderInfo.dealTime }}</div>
+		</div>	
+		<div class="row">
+				<div class="col-sm-5 table-detail-item-label">备注:</div> 
+				<div class="col-sm-7 table-detail-item-value">{{platformOrderInfo.note }}</div>
+		</div>	
+		<div class="row">
+				<div class="col-sm-5 table-detail-item-label">支付地址:</div> 
+				<div class="col-sm-7 table-detail-item-value">
+				<a href="{{platformOrderInfo.payUrl }}" target="_blank">{{platformOrderInfo.payUrl }}</a>
+				</div>
+		</div>	
+		<div class="row">
+				<div class="col-sm-5 table-detail-item-label">商户订单号:</div>
+				<div class="col-sm-7 table-detail-item-value">{{platformOrderInfo.payInfo.orderNo }}</div>
+		</div>	
+		<div class="row">
+				<div class="col-sm-5 table-detail-item-label">异步通知地址:</div>
+				<div class="col-sm-7 table-detail-item-value">{{platformOrderInfo.payInfo.notifyUrl }}</div>
+		</div>	
+		<div class="row">
+				<div class="col-sm-5 table-detail-item-label">同步通知地址:</div>
+				<div class="col-sm-7 table-detail-item-value">{{platformOrderInfo.payInfo.returnUrl }}</div>
+		</div>	
+		<div class="row">
+				<div class="col-sm-5 table-detail-item-label">附加信息:</div>
+				<div class="col-sm-7 table-detail-item-value">{{platformOrderInfo.payInfo.attch }}</div>
+		</div>	
+		<div class="row">
+				<div class="col-sm-5 table-detail-item-label">通知时间:</div>
+				<div class="col-sm-7 table-detail-item-value">{{platformOrderInfo.payInfo.noticeTime }}</div>
+		</div>
+	</div>
+</script>
+<style type="text/css">
+.common-query-cond-form {
+	padding-top: 2px;
+	padding-bottom: 2px;
+}
+
+
+.platform-order-table button {
+	margin-right: 4px;
+}
+
+.details-container {
+	padding-right: 44px;
+	padding-left: 44px;
+	padding-top: 15px;
+}
+
+.back-action {
+	float: right;
+}
+
+.details-row {
+	padding-bottom: 20px;
+}
+
+.details-title {
+	text-align: center;
+	font-weight: bold;
+	font-size: 22px;
+	padding-bottom: 10px;
+}
+
+.details-item {
+	font-size: 18px;
+}
+
+.details-item-highlight {
+	color: #ef061e;
+}
+
+.details-item label {
+	padding-right: 20px;
+	color: #757b82;
+}
+
+.details-item span {
+	
+}
+
+.details-action {
+	text-align: center;
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+
+.details-action button {
+	margin-right: 30px;
+}
+
+.gathering-code-pic {
+	display: flex;
+	justify-content: center;
+}
+
+.gathering-code-pic img {
+	width: 230px;
+	min-height: 230px;
+}
+</style>
+</head>
+
+<body>
+	<div th:replace="common/header::html"></div>
+	<div id="platform-order" v-cloak>
+		<div v-show="showMerchantRecordFlag">
+			<form class="form-inline common-query-cond-form">
+				<div class="form-group common-query-cond">
+					<label>订单号:</label><input type="text" class="form-control-sm" v-model="orderNo">
+				</div>
+				<div class="form-group common-query-cond">
+					<label>订单状态:</label> <select class="form-control-sm" v-model="orderState">
+						<option value="">全部</option>
+						<option v-for="dictItem in platformOrderStateDictItems" :value="dictItem.dictItemCode">{{dictItem.dictItemName}}</option>
+					</select>
+				</div>
+				<div class="form-group common-query-cond">
+					<label>收款渠道:</label> <select class="form-control-sm" v-model="gatheringChannelCode">
+						<option value="">请选择</option>
+						<option v-for="dictItem in gatheringChannelDictItems" :value="dictItem.dictItemCode">{{dictItem.dictItemName}}</option>
+					</select>
+				</div>
+				<div class="form-group common-query-cond">
+					<label>接单人:</label> <input type="text" class="form-control-sm" v-model="receiverUserName">
+				</div>
+			</form>
+			<form class="form-inline common-query-cond-form">
+				<div class="form-group common-query-cond">
+					<label>提交时间:</label><input type="date" class="form-control-sm" v-model="submitStartTime"><span>到</span><input type="date" class="form-control-sm" v-model="submitEndTime">
+				</div>
+				<button type="button" class="btn btn-danger btn-sm" v-on:click="refreshTable">搜索</button>
+			</form>
+			<form class="form-inline common-query-cond-form float-right" action="#">
+				<button type="button" class="btn btn-info btn-sm" v-on:click="showAddOrderModal">新增订单</button>
+			</form>
+			<table class="common-table platform-order-table"></table>
+		</div>
+
+		<div v-if="showAddOrderFlag">
+			<div class="modal-mask">
+				<div class="modal-wrapper">
+					<div class="modal-dialog">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title">新增订单</h5>
+								<button type="button" class="close" data-dismiss="modal" aria-label="Close" v-on:click="showAddOrderFlag = false">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+							<div class="modal-body">
+								<form>
+									<div class="form-group row">
+										<div class="col-sm-6">
+											<label>收款渠道:</label> <select class="form-control" v-model="gatheringChannelCodeWithAddOrder">
+												<option value="">请选择</option>
+												<option v-for="dictItem in gatheringChannelDictItems" :value="dictItem.dictItemCode">{{dictItem.dictItemName}}</option>
+											</select>
+										</div>
+										<div class="col-sm-6">
+											<label>收款金额:</label> <input type="number" class="form-control" v-model="gatheringAmountWithAddOrder">
+										</div>
+									</div>
+									<div class="form-group row">
+										<div class="col-sm-12">
+											<label>商户订单号:</label> <input type="text" class="form-control" v-model="orderNoWithAddOrder">
+										</div>
+									</div>
+									<div class="form-group row">
+										<div class="col-sm-12">
+											<label>异步通知地址:</label> <input type="text" class="form-control" v-model="notifyUrlWithAddOrder">
+										</div>
+									</div>
+									<div class="form-group row">
+										<div class="col-sm-12">
+											<label>同步通知地址:</label> <input type="text" class="form-control" v-model="returnUrlWithAddOrder">
+										</div>
+									</div>
+									<div class="form-group row">
+										<div class="col-sm-12">
+											<label>附加信息:</label> <input type="text" class="form-control" v-model="attchWithAddOrder">
+										</div>
+									</div>
+								</form>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-success btn-sm" v-on:click="addOrder">确定</button>
+								<button type="button" class="btn btn-sm" v-on:click="showAddOrderFlag = false">取消</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="details-container" v-show="showOrderDetailsFlag">
+			<div class="back-action">
+				<button type="button" class="btn light btn-lg" v-on:click="showMerchantRecordPage">返回</button>
+			</div>
+			<div class="details-title">订单详情</div>
+			<div class="row details-row">
+				<div class="col-sm-4 details-item">
+					<label>订单号:</label><span>{{selectedOrderDetails.orderNo}}</span>
+				</div>
+				<div class="col-sm-4 details-item">
+					<label>订单状态:</label><span class="details-item-highlight">{{selectedOrderDetails.orderStateName}}</span>
+				</div>
+				<div class="col-sm-4 details-item">
+					<label>收款渠道/收款金额:</label><span class="details-item-highlight">{{selectedOrderDetails.gatheringChannelName + '/' + selectedOrderDetails.gatheringAmount}}元</span>
+				</div>
+			</div>
+			<div class="row details-row">
+				<div class="col-sm-4 details-item">
+					<label>接单人/接单时间:</label><span class="details-item-highlight" v-show="selectedOrderDetails.receiverUserName != null">{{selectedOrderDetails.receiverUserName + '/' + selectedOrderDetails.receivedTime}}</span>
+				</div>
+				<div class="col-sm-4 details-item">
+					<label>提交时间:</label><span>{{selectedOrderDetails.submitTime}}</span>
+				</div>
+				<div class="col-sm-4 details-item">
+					<label>确认时间:</label><span>{{selectedOrderDetails.confirmTime}}</span>
+				</div>
+			</div>
+			<div class="row details-row">
+				<div class="col-sm-4 details-item">
+					<label>订单有效时间:</label><span>{{selectedOrderDetails.usefulTime}}</span>
+				</div>
+				<div class="col-sm-4 details-item">
+					<label>商户确认时间:</label><span>{{selectedOrderDetails.platformConfirmTime}}</span>
+				</div>
+				<div class="col-sm-4 details-item">
+					<label>系统处理时间:</label><span>{{selectedOrderDetails.dealTime}}</span>
+				</div>
+			</div>
+			<div class="row details-row">
+				<div class="col-sm-4 details-item" v-show="selectedOrderDetails.note != null">
+					<label>备注:</label><span>{{selectedOrderDetails.note}}</span>
+				</div>
+			</div>
+			<div class="gathering-code-pic">
+				<div style="color: red; font-weight: bold; font-size: 22px;" v-if="selectedOrderDetails.orderState == '1'">等待接单中...</div>
+				<img v-if="selectedOrderDetails.gatheringCodeStorageId != null && selectedOrderDetails.gatheringCodeStorageId != ''" :src="'/storage/fetch/' + selectedOrderDetails.gatheringCodeStorageId">
+			</div>
+			<div class="details-action">
+				<button type="button" class="btn btn-info btn-lg" v-show="selectedOrderDetails.orderState == '2' || selectedOrderDetails.orderState == '3'" v-on:click="showStartAppealPage">发起申诉</button>
+			</div>
+		</div>
+
+		<div class="details-container" v-show="showStartAppealFlag">
+			<div class="back-action">
+				<button type="button" class="btn light btn-lg" v-on:click="showOrderDetailsPage(selectedOrderDetails.id)">返回</button>
+			</div>
+			<div class="details-title">发起申诉</div>
+			<div class="row details-row">
+				<div class="col-sm-4 details-item">
+					<label>订单号:</label><span>{{selectedOrderDetails.orderNo}}</span>
+				</div>
+				<div class="col-sm-4 details-item">
+					<label>订单状态:</label><span>{{selectedOrderDetails.orderStateName}}</span>
+				</div>
+				<div class="col-sm-4 details-item">
+					<label>收款渠道/收款金额:</label><span class="details-item-highlight">{{selectedOrderDetails.gatheringChannelName + '/' + selectedOrderDetails.gatheringAmount}}元</span>
+				</div>
+			</div>
+			<div class="row details-row">
+				<div class="col-sm-4 details-item">
+					<label>接单人/接单时间:</label><span class="details-item-highlight">{{selectedOrderDetails.receiverUserName + '/' + selectedOrderDetails.receivedTime}}</span>
+				</div>
+				<div class="col-sm-4 details-item">
+					<label>提交时间:</label><span>{{selectedOrderDetails.submitTime}}</span>
+				</div>
+			</div>
+			<form>
+				<div class="form-group row">
+					<div class="col-sm-12">
+						<label>申诉类型:</label>
+						<div style="display: inline-block;">
+							<template v-for="dictItem in appealTypeDictItems">
+							<div class="custom-control custom-radio custom-control-inline" v-if="dictItem.dictItemCode == '2' || dictItem.dictItemCode == '3'">
+								<input type="radio" class="custom-control-input" :id="'appealType' + dictItem.dictItemCode" v-model="appealType" :value="dictItem.dictItemCode"> <label class="custom-control-label" :for="'appealType' + dictItem.dictItemCode">{{dictItem.dictItemName}}</label>
+							</div>
+							</template>
+						</div>
+					</div>
+				</div>
+				<div class="form-group row" v-show="appealType == '2'">
+					<div class="col-sm-12">
+						<label>实际支付金额:</label>
+						<div style="display: inline-block;">
+							<input type="number" class="form-control" v-model="actualPayAmount">
+						</div>
+					</div>
+				</div>
+				<div class="form-group row">
+					<div class="col-sm-12">
+						<label>截图:</label> <input type="file" class="form-control sreenshot" multiple>
+					</div>
+				</div>
+			</form>
+			<div class="details-action">
+				<button type="button" class="btn btn-info btn-lg" v-on:click="merchantStartAppeal">申诉</button>
+			</div>
+		</div>
+	</div>
+	<script src="/js/platform-order.js"></script>
+</body>
+</html>
