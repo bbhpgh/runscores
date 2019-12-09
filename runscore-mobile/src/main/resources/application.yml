@@ -8,18 +8,24 @@ spring:
   datasource:
     url: jdbc:mysql://127.0.0.1:3306/runscore?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
     username: root
-    password: 123456
+    password: root
     driverClassName: com.mysql.cj.jdbc.Driver
+    hikari:
+      minimum-idle: 3
+      maximum-pool-size: 10
+      max-lifetime: 30000
+      connection-test-query: SELECT 1
   jpa:
     show-sql: true
     generate-ddl: true
     hibernate:
       ddl-auto: none
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
   thymeleaf:
     cache: false
   redis:
     port: 6379
-    host: localhost
+    host: 127.0.0.1
   session:
     store-type: redis
     timeout: 7200s

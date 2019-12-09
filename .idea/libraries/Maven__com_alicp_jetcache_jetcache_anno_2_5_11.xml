@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: com.alicp.jetcache:jetcache-anno:2.5.11">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/alicp/jetcache/jetcache-anno/2.5.11/jetcache-anno-2.5.11.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/com/alicp/jetcache/jetcache-anno/2.5.11/jetcache-anno-2.5.11-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/alicp/jetcache/jetcache-anno/2.5.11/jetcache-anno-2.5.11-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
