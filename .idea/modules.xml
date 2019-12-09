@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/runpoints.iml" filepath="$PROJECT_DIR$/.idea/runpoints.iml" />
+      <module fileurl="file://$PROJECT_DIR$/runscore-admin/runscore-admin.iml" filepath="$PROJECT_DIR$/runscore-admin/runscore-admin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/runscore-api/runscore-api.iml" filepath="$PROJECT_DIR$/runscore-api/runscore-api.iml" />
+      <module fileurl="file://$PROJECT_DIR$/runscore-merchant/runscore-merchant.iml" filepath="$PROJECT_DIR$/runscore-merchant/runscore-merchant.iml" />
+      <module fileurl="file://$PROJECT_DIR$/runscore-mobile/runscore-mobile.iml" filepath="$PROJECT_DIR$/runscore-mobile/runscore-mobile.iml" />
+    </modules>
+  </component>
+</project>
