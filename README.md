@@ -23,8 +23,9 @@ h5端：http://47.92.167.103:8888 账号/密码： 普通会员：huiyuan1/123 �
 
 ## 最新福利，演示地址完整版本免费提供
 
-https://www.aliyun.com/minisite/goods?userCode=a5ncv0ej  
 只需在阿里云注册购买主机即可免费部署安装最新完整版，（最低配置2核4G内存，带宽根据自己用户量决定）
+下面链接购买有优惠
+https://www.aliyun.com/minisite/goods?userCode=a5ncv0ej  
 
 可加QQ获取完整版：52013594
 
