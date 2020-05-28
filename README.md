@@ -31,8 +31,6 @@ https://www.aliyun.com/minisite/goods?userCode=a5ncv0ej
 
 可加QQ获取完整版：52013594
 
-## 有偿服务
-微信：zhangtin88888  500元提供APP 制作和技术支持
 
 ## 截图
 
