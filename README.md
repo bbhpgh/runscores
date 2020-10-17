@@ -29,7 +29,7 @@ https://www.aliyun.com/minisite/goods?userCode=a5ncv0ej
 
 开源版本免费使用，系统采用JAVA语言开发，会java的技术人员可以自行二次开发
 
-如需要最新完整商业版本  可加QQ获取完整版：52013594  
+如需要最新完整商业版本  可加QQ获取完整版：2825670967  
 
 
 ## 截图
