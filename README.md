@@ -27,7 +27,7 @@ h5端：http://120.25.241.204:8080  普通会员：账号:test 密码：123 代�
 
 开源版本免费使用，系统采用JAVA语言开发，会java的技术人员可以自行二次开发
 
-如需要最新完整商业版本     飞机 Telegram：@payxxpro
+如需要最新完整商业版本     飞机 Telegram：@xxpaypro
 
 
 ## 如需聚合支付系统，四方支付源码请移步 https://github.com/xxpaypro/xxpay4pro 
