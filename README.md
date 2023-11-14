@@ -19,7 +19,7 @@ h5端：http://120.25.241.204:8080  普通会员：账号:test 密码：123 代�
 
 后台管理： https://www.paofenpay.com/ht.php 帐号：admin 密码：123456
 
-前端：https://www.paofenpay.com 帐号：188123456771 密码：123456
+前端：https://www.paofenpay.com 帐号：18812345677 密码：123456
 
 前台测试地址: https://www.paofenpay.com/?c=Pay&a=test&v=v5.0.21
 
